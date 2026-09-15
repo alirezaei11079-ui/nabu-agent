@@ -1,11 +1,17 @@
-name: Nabu Agent Test
+name: Nabu Agent
 
 on:
   workflow_dispatch:
 
+  schedule:
+    - cron: "7/5 * * * *"
+
 jobs:
-  test:
+  monitor:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
@@ -17,10 +23,18 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: pip install requests
+        run: pip install -r requirements.txt
 
-      - name: Run Nabu Agent
+      - name: Run Nabu Monitor
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python main.py
+
+      - name: Save monitor state
+        run: |
+          git config user.name "nabu-agent"
+          git config user.email "nabu-agent@users.noreply.github.com"
+          git add telegram_state.json
+          git diff --cached --quiet || git commit -m "Update Telegram monitor state"
+          git push
