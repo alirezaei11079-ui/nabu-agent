@@ -1,9 +1,11 @@
 import os
-import re
 import json
 import requests
 from bs4 import BeautifulSoup
+
 from analyzer import analyze_message, format_alert
+
+
 CHANNEL = "web3nabu"
 STATE_FILE = "telegram_state.json"
 
@@ -56,19 +58,25 @@ def get_latest_post():
 
     post_id = int(data_post.split("/")[-1])
 
-    text_element = post.select_one(".tgme_widget_message_text")
+    text_element = post.select_one(
+        ".tgme_widget_message_text"
+    )
 
-    text = text_element.get_text(
-        "\n",
-        strip=True
-    ) if text_element else ""
+    text = (
+        text_element.get_text(
+            "\n",
+            strip=True
+        )
+        if text_element
+        else ""
+    )
 
     link = f"https://t.me/{CHANNEL}/{post_id}"
 
     return {
         "id": post_id,
         "text": text,
-        "link": link
+        "link": link,
     }
 
 
@@ -77,16 +85,28 @@ def load_state():
         return {"last_post_id": 0}
 
     try:
-        with open(STATE_FILE, "r", encoding="utf-8") as file:
+        with open(
+            STATE_FILE,
+            "r",
+            encoding="utf-8"
+        ) as file:
             return json.load(file)
+
     except Exception:
         return {"last_post_id": 0}
 
 
 def save_state(post_id):
-    with open(STATE_FILE, "w", encoding="utf-8") as file:
+    with open(
+        STATE_FILE,
+        "w",
+        encoding="utf-8"
+    ) as file:
+
         json.dump(
-            {"last_post_id": post_id},
+            {
+                "last_post_id": post_id
+            },
             file,
             ensure_ascii=False,
             indent=2
@@ -94,6 +114,7 @@ def save_state(post_id):
 
 
 def main():
+
     latest = get_latest_post()
 
     if not latest:
@@ -101,37 +122,63 @@ def main():
         return
 
     state = load_state()
-    last_post_id = state.get("last_post_id", 0)
 
-    print(f"Latest post: {latest['id']}")
-    print(f"Previous post: {last_post_id}")
+    last_post_id = state.get(
+        "last_post_id",
+        0
+    )
 
-    # First run: establish baseline without sending old posts
+    print(
+        f"Latest post: {latest['id']}"
+    )
+
+    print(
+        f"Previous post: {last_post_id}"
+    )
+
+    # First run
     if last_post_id == 0:
-        save_state(latest["id"])
-        print("Initial Telegram state saved.")
+
+        save_state(
+            latest["id"]
+        )
+
+        print(
+            "Initial Telegram state saved."
+        )
+
         return
 
-    # Nothing new
+    # No new post
     if latest["id"] <= last_post_id:
-        print("No new post.")
+
+        print(
+            "No new post."
+        )
+
         return
 
     # New post detected
-  analysis = analyze_message(
-    latest["text"],
-    latest["link"]
-)
+    analysis = analyze_message(
+        latest["text"],
+        latest["link"]
+    )
 
-message = format_alert(analysis)
+    message = format_alert(
+        analysis
+    )
 
-send_telegram(message)  
+    send_telegram(
+        message
+    )
 
-    send_telegram(message)
+    save_state(
+        latest["id"]
+    )
 
-    save_state(latest["id"])
-
-    print("New Nabu post sent to Telegram.")
+    print(
+        "New Nabu post analyzed and sent."
+    )
 
 
 if __name__ == "__main__":
