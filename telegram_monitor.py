@@ -3,7 +3,7 @@ import re
 import json
 import requests
 from bs4 import BeautifulSoup
-
+from analyzer import analyze_message, format_alert
 CHANNEL = "web3nabu"
 STATE_FILE = "telegram_state.json"
 
@@ -118,11 +118,14 @@ def main():
         return
 
     # New post detected
-    message = (
-        "🔔 Nabu | پست جدید\n\n"
-        f"{latest['text']}\n\n"
-        f"🔗 {latest['link']}"
-    )
+  analysis = analyze_message(
+    latest["text"],
+    latest["link"]
+)
+
+message = format_alert(analysis)
+
+send_telegram(message)  
 
     send_telegram(message)
 
