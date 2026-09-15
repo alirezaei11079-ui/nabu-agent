@@ -5,7 +5,6 @@ from bs4 import BeautifulSoup
 
 from analyzer import analyze_message, format_alert
 
-
 CHANNEL = "web3nabu"
 STATE_FILE = "telegram_state.json"
 
@@ -29,7 +28,7 @@ def send_telegram(message):
     response.raise_for_status()
 
 
-def get_latest_post():
+def get_posts():
     url = f"https://t.me/s/{CHANNEL}"
 
     response = requests.get(
@@ -46,38 +45,42 @@ def get_latest_post():
 
     posts = soup.select(".tgme_widget_message")
 
-    if not posts:
-        return None
+    results = []
 
-    post = posts[-1]
+    for post in posts:
+        data_post = post.get("data-post")
 
-    data_post = post.get("data-post")
+        if not data_post:
+            continue
 
-    if not data_post:
-        return None
+        try:
+            post_id = int(data_post.split("/")[-1])
+        except ValueError:
+            continue
 
-    post_id = int(data_post.split("/")[-1])
-
-    text_element = post.select_one(
-        ".tgme_widget_message_text"
-    )
-
-    text = (
-        text_element.get_text(
-            "\n",
-            strip=True
+        text_element = post.select_one(
+            ".tgme_widget_message_text"
         )
-        if text_element
-        else ""
-    )
 
-    link = f"https://t.me/{CHANNEL}/{post_id}"
+        text = (
+            text_element.get_text("\n", strip=True)
+            if text_element
+            else ""
+        )
 
-    return {
-        "id": post_id,
-        "text": text,
-        "link": link,
-    }
+        link = f"https://t.me/{CHANNEL}/{post_id}"
+
+        results.append(
+            {
+                "id": post_id,
+                "text": text,
+                "link": link,
+            }
+        )
+
+    results.sort(key=lambda x: x["id"])
+
+    return results
 
 
 def load_state():
@@ -85,99 +88,80 @@ def load_state():
         return {"last_post_id": 0}
 
     try:
-        with open(
-            STATE_FILE,
-            "r",
-            encoding="utf-8"
-        ) as file:
+        with open(STATE_FILE, "r", encoding="utf-8") as file:
             return json.load(file)
-
     except Exception:
         return {"last_post_id": 0}
 
 
 def save_state(post_id):
-    with open(
-        STATE_FILE,
-        "w",
-        encoding="utf-8"
-    ) as file:
-
+    with open(STATE_FILE, "w", encoding="utf-8") as file:
         json.dump(
-            {
-                "last_post_id": post_id
-            },
+            {"last_post_id": post_id},
             file,
             ensure_ascii=False,
-            indent=2
+            indent=2,
         )
 
 
 def main():
+    posts = get_posts()
 
-    latest = get_latest_post()
-
-    if not latest:
-        print("No Telegram post found.")
+    if not posts:
+        print("No Telegram posts found.")
         return
 
     state = load_state()
+    last_post_id = state.get("last_post_id", 0)
 
-    last_post_id = state.get(
-        "last_post_id",
-        0
-    )
+    print(f"Found posts: {len(posts)}")
+    print(f"Previous post: {last_post_id}")
+    print(f"Latest post: {posts[-1]['id']}")
 
-    print(
-        f"Latest post: {latest['id']}"
-    )
-
-    print(
-        f"Previous post: {last_post_id}"
-    )
-
-    # First run
+    # اولین اجرا:
+    # فقط آخرین پست را ذخیره می‌کنیم تا پیام‌های قدیمی ارسال نشوند.
     if last_post_id == 0:
-
-        save_state(
-            latest["id"]
-        )
-
-        print(
-            "Initial Telegram state saved."
-        )
-
+        save_state(posts[-1]["id"])
+        print("Initial Telegram state saved.")
         return
 
-    # No new post
-    if latest["id"] <= last_post_id:
+    new_posts = [
+        post
+        for post in posts
+        if post["id"] > last_post_id
+    ]
 
-        print(
-            "No new post."
-        )
-
+    if not new_posts:
+        print("No new post.")
         return
 
-    # New post detected
-    analysis = analyze_message(
-        latest["text"],
-        latest["link"]
-    )
+    print(f"New posts found: {len(new_posts)}")
 
-    message = format_alert(
-        analysis
-    )
+    latest_processed_id = last_post_id
 
-    send_telegram(
-        message
-    )
+    for post in new_posts:
 
-    save_state(
-        latest["id"]
-    )
+        print(f"Analyzing post: {post['id']}")
+
+        analysis = analyze_message(
+            post["text"],
+            post["link"],
+        )
+
+        message = format_alert(analysis)
+
+        send_telegram(message)
+
+        latest_processed_id = post["id"]
+
+        print(
+            f"Post {post['id']} analyzed and sent."
+        )
+
+    save_state(latest_processed_id)
 
     print(
-        "New Nabu post analyzed and sent."
+        f"Monitor state updated to: {latest_processed_id}"
     )
 
 
