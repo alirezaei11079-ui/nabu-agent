@@ -3,80 +3,30 @@ from urllib.parse import urlparse
 
 
 # =========================================================
-# TOPICS
+# KEYWORDS
 # =========================================================
 
 TOPIC_KEYWORDS = {
-    "AIRDROP": [
-        "airdrop",
-        "air drop",
-        "airdrop eligibility",
-        "eligible users",
+    "MINT": [
+        "mint",
+        "minting",
+        "minted",
     ],
 
     "CLAIM": [
         "claim",
-        "claim now",
-        "claim your",
-        "claim rewards",
-        "claim tokens",
-    ],
-
-    "MINT": [
-        "mint is live",
-        "mint now",
-        "mint your",
-        "mint nft",
-        "minting is live",
-        "free mint",
-    ],
-
-    "TESTNET": [
-        "testnet",
-        "test net",
-        "test network",
-    ],
-
-    "MAINNET": [
-        "mainnet",
-        "main net",
-        "mainnet launch",
-    ],
-
-    "LISTING": [
-        "listing",
-        "listed on",
-        "now listed",
-        "trading starts",
-    ],
-
-    "WHITELIST": [
-        "whitelist",
-        "allowlist",
-        "allow list",
-        "wl spot",
-        "wl spots",
-    ],
-
-    "SNAPSHOT": [
-        "snapshot",
-        "snapshot taken",
-        "snapshot date",
+        "claiming",
+        "rewards",
+        "reward",
     ],
 
     "GIVEAWAY": [
         "giveaway",
-        "give away",
-        "winners",
+        "airdrop",
+        "wl",
+        "whitelist",
         "winner",
-    ],
-
-    "QUEST": [
-        "quest",
-        "quests",
-        "task",
-        "tasks",
-        "campaign",
+        "winners",
     ],
 
     "COMPETITION": [
@@ -91,203 +41,359 @@ TOPIC_KEYWORDS = {
 
     "PARTNERSHIP": [
         "partnership",
-        "partnered",
         "partner",
-    ],
-
-    "FUNDING": [
-        "funding",
-        "raised",
-        "investment",
-        "investors",
-    ],
-
-    "ANNOUNCEMENT": [
-        "announcement",
-        "announcing",
-        "introducing",
+        "collab",
+        "collaboration",
     ],
 }
 
 
-# =========================================================
-# ACTION PATTERNS
-# =========================================================
-
-ACTION_PATTERNS = {
-
-    "CLAIM": [
-        r"\bclaim\b.{0,80}\b(now|today|rewards?|tokens?)\b",
-        r"\bclaim your\b",
-        r"\bclaim rewards?\b",
-    ],
-
+ACTION_KEYWORDS = {
     "CONNECT_WALLET": [
-        r"\bconnect\b.{0,40}\bwallet\b",
-        r"\bconnect your wallet\b",
-    ],
-
-    "REGISTER": [
-        r"\bregister\b",
-        r"\bsign up\b",
-        r"\bsignup\b",
-        r"\bregistration\b",
-        r"ثبت نام",
-        r"ثبت‌نام",
-    ],
-
-    "DEPOSIT": [
-        r"\bdeposit\b",
-        r"\bdeposit funds\b",
-    ],
-
-    "WITHDRAW": [
-        r"\bwithdraw\b",
-        r"\bwithdrawal\b",
-    ],
-
-    "STAKE": [
-        r"\bstake\b",
-        r"\bstaking\b",
-    ],
-
-    "BRIDGE": [
-        r"\bbridge\b",
-        r"\bbridge your\b",
-    ],
-
-    "VOTE": [
-        r"\bvote\b",
-        r"\bvoting\b",
-        r"\bgovernance vote\b",
-    ],
-
-    "VERIFY": [
-        r"\bverify\b",
-        r"\bverification\b",
-    ],
-
-    "APPLY": [
-        r"\bapply\b",
-        r"\bapplications?\b",
+        "connect wallet",
+        "connect your wallet",
+        "wallet connect",
+        "اتصال کیف پول",
     ],
 
     "MINT": [
-        r"\bmint\b.{0,50}\bnow\b",
-        r"\bmint\b.{0,50}\blive\b",
-        r"\bmint your\b",
-        r"\bfree mint\b",
+        "mint now",
+        "mint",
+        "minting",
+        "mint it",
+        "مینت",
     ],
 
-    "BUY": [
-        r"\bbuy now\b",
-        r"\bbuy\b.{0,40}\btoken\b",
-        r"\bbuy\b.{0,40}\bcoin\b",
+    "CLAIM": [
+        "claim now",
+        "claim",
+        "claim your",
+        "دریافت",
+        "کلیم",
     ],
 
-    "SELL": [
-        r"\bsell now\b",
-        r"\bsell\b.{0,40}\btoken\b",
-        r"\bsell\b.{0,40}\bcoin\b",
+    "REGISTER": [
+        "register",
+        "registration",
+        "ثبت نام",
+        "ثبت‌نام",
     ],
 
     "JOIN": [
-        r"\bjoin\b",
-        r"\bjoin us\b",
-        r"\bjoin the\b",
-        r"شرکت کنید",
-        r"شرکت کن",
-        r"وارد مسابقه شوید",
-        r"وارد مسابقه شو",
-        r"در مسابقه شرکت",
-    ],
-
-    "FOLLOW": [
-        r"\bfollow\b",
-        r"\bfollow us\b",
-    ],
-
-    "LIKE": [
-        r"\blike\b",
-        r"\blike this\b",
-    ],
-
-    "REPOST": [
-        r"\brepost\b",
-        r"\bretweet\b",
-        r"\bretweet this\b",
+        "join",
+        "join now",
+        "participate",
+        "شرکت کنید",
+        "شرکت کن",
+        "وارد مسابقه شوید",
+        "وارد مسابقه شو",
+        "در مسابقه شرکت",
     ],
 }
 
 
 # =========================================================
-# RISK
+# SOURCE VERIFICATION
 # =========================================================
 
-HIGH_RISK_ACTIONS = {
-    "DEPOSIT",
-    "WITHDRAW",
-    "BUY",
-    "SELL",
+TRUSTED_DOMAINS = {
+    "telegram.org",
+    "t.me",
+    "x.com",
+    "twitter.com",
+    "github.com",
+    "discord.com",
+    "discord.gg",
 }
 
-MEDIUM_RISK_ACTIONS = {
-    "CONNECT_WALLET",
-    "MINT",
-    "CLAIM",
-    "STAKE",
-    "BRIDGE",
-    "VOTE",
+URL_SHORTENERS = {
+    "bit.ly",
+    "tinyurl.com",
+    "t.co",
+    "goo.gl",
+    "is.gd",
+    "cutt.ly",
+    "shorturl.at",
+    "rb.gy",
 }
 
-LOW_RISK_ACTIONS = {
-    "REGISTER",
-    "VERIFY",
-    "APPLY",
-    "JOIN",
-    "FOLLOW",
-    "LIKE",
-    "REPOST",
-}
-
-
-# =========================================================
-# PRIORITY
-# =========================================================
-
-HIGH_PRIORITY_TOPICS = {
-    "AIRDROP",
-    "CLAIM",
-    "MAINNET",
-    "LISTING",
-    "SNAPSHOT",
-}
-
-MEDIUM_PRIORITY_TOPICS = {
-    "MINT",
-    "TESTNET",
-    "WHITELIST",
-    "GIVEAWAY",
-    "QUEST",
-    "COMPETITION",
-    "FUNDING",
-    "PARTNERSHIP",
+SUSPICIOUS_TLDS = {
+    ".click",
+    ".top",
+    ".xyz",
+    ".buzz",
+    ".monster",
+    ".shop",
+    ".live",
+    ".icu",
+    ".cam",
 }
 
 
 # =========================================================
-# TEXT HELPERS
+# URL EXTRACTION
 # =========================================================
 
-def clean_text(text):
-    return re.sub(r"\s+", " ", text).strip()
+def extract_links(text):
+    pattern = r"https?://[^\s<>\"]+"
+    return re.findall(pattern, text)
+
+
+# =========================================================
+# DOMAIN HELPERS
+# =========================================================
+
+def normalize_domain(domain):
+    domain = domain.lower().strip()
+
+    if domain.startswith("www."):
+        domain = domain[4:]
+
+    return domain
+
+
+def is_ip_address(domain):
+    ipv4 = r"^\d{1,3}(\.\d{1,3}){3}$"
+    return bool(re.match(ipv4, domain))
+
+
+def is_punycode(domain):
+    return "xn--" in domain.lower()
+
+
+def is_trusted_domain(domain):
+    domain = normalize_domain(domain)
+
+    for trusted in TRUSTED_DOMAINS:
+        if domain == trusted or domain.endswith("." + trusted):
+            return True
+
+    return False
+
+
+def is_shortener(domain):
+    domain = normalize_domain(domain)
+    return domain in URL_SHORTENERS
+
+
+def has_suspicious_tld(domain):
+    domain = normalize_domain(domain)
+
+    return any(
+        domain.endswith(tld)
+        for tld in SUSPICIOUS_TLDS
+    )
+
+
+# =========================================================
+# SOURCE ANALYSIS
+# =========================================================
+
+def analyze_source(url, text=""):
+    parsed = urlparse(url)
+
+    domain = normalize_domain(parsed.netloc)
+
+    result = {
+        "url": url,
+        "domain": domain,
+        "source_type": "UNKNOWN",
+        "status": "UNKNOWN",
+        "risk": "LOW",
+        "warnings": [],
+    }
+
+    if not domain:
+        result["status"] = "INVALID"
+        result["risk"] = "HIGH"
+        result["warnings"].append("Invalid URL")
+        return result
+
+    # -----------------------------------------------------
+    # Trusted source
+    # -----------------------------------------------------
+
+    if is_trusted_domain(domain):
+        result["source_type"] = "TRUSTED_PLATFORM"
+        result["status"] = "KNOWN"
+        result["risk"] = "LOW"
+
+    # -----------------------------------------------------
+    # URL shortener
+    # -----------------------------------------------------
+
+    elif is_shortener(domain):
+        result["source_type"] = "URL_SHORTENER"
+        result["status"] = "UNKNOWN"
+        result["risk"] = "MEDIUM"
+        result["warnings"].append(
+            "Shortened URL hides the final destination"
+        )
+
+    # -----------------------------------------------------
+    # IP address
+    # -----------------------------------------------------
+
+    elif is_ip_address(domain):
+        result["source_type"] = "IP_ADDRESS"
+        result["status"] = "SUSPICIOUS"
+        result["risk"] = "HIGH"
+        result["warnings"].append(
+            "Website uses an IP address instead of a normal domain"
+        )
+
+    # -----------------------------------------------------
+    # Punycode
+    # -----------------------------------------------------
+
+    elif is_punycode(domain):
+        result["source_type"] = "PUNYCODE_DOMAIN"
+        result["status"] = "SUSPICIOUS"
+        result["risk"] = "HIGH"
+        result["warnings"].append(
+            "Punycode domain detected"
+        )
+
+    # -----------------------------------------------------
+    # Suspicious TLD
+    # -----------------------------------------------------
+
+    elif has_suspicious_tld(domain):
+        result["source_type"] = "UNKNOWN_DOMAIN"
+        result["status"] = "UNKNOWN"
+        result["risk"] = "MEDIUM"
+        result["warnings"].append(
+            "Domain uses a potentially suspicious TLD"
+        )
+
+    # -----------------------------------------------------
+    # Unknown domain
+    # -----------------------------------------------------
+
+    else:
+        result["source_type"] = "UNKNOWN_DOMAIN"
+        result["status"] = "UNKNOWN"
+        result["risk"] = "MEDIUM"
+
+        result["warnings"].append(
+            "Domain is not in the trusted source list"
+        )
+
+    # =====================================================
+    # Context-sensitive scam detection
+    # =====================================================
+
+    text_lower = text.lower()
+
+    sensitive_words = [
+        "claim",
+        "mint",
+        "connect wallet",
+        "wallet",
+        "airdrop",
+        "free",
+        "reward",
+        "verify",
+        "verification",
+        "claim your",
+        "mint now",
+    ]
+
+    sensitive_context = any(
+        word in text_lower
+        for word in sensitive_words
+    )
+
+    if sensitive_context and result["status"] == "UNKNOWN":
+
+        if result["risk"] == "LOW":
+            result["risk"] = "MEDIUM"
+
+        if (
+            "Sensitive crypto action"
+            not in result["warnings"]
+        ):
+            result["warnings"].append(
+                "Sensitive crypto action detected on an unverified domain"
+            )
+
+    # =====================================================
+    # Final risk escalation
+    # =====================================================
+
+    if result["status"] == "SUSPICIOUS":
+        result["risk"] = "HIGH"
+
+    return result
+
+
+# =========================================================
+# ANALYZE ALL SOURCES
+# =========================================================
+
+def analyze_sources(text, links):
+
+    sources = []
+
+    for link in links:
+        sources.append(
+            analyze_source(
+                link,
+                text
+            )
+        )
+
+    if not sources:
+        return {
+            "sources": [],
+            "overall_status": "NO_LINK",
+            "overall_risk": "LOW",
+            "warnings": [],
+        }
+
+    risk_levels = {
+        "LOW": 1,
+        "MEDIUM": 2,
+        "HIGH": 3,
+    }
+
+    highest_risk = max(
+        sources,
+        key=lambda x: risk_levels.get(
+            x["risk"],
+            1
+        )
+    )["risk"]
+
+    warnings = []
+
+    for source in sources:
+        warnings.extend(
+            source["warnings"]
+        )
+
+    if highest_risk == "HIGH":
+        overall_status = "SUSPICIOUS"
+
+    elif highest_risk == "MEDIUM":
+        overall_status = "UNVERIFIED"
+
+    else:
+        overall_status = "KNOWN"
+
+    return {
+        "sources": sources,
+        "overall_status": overall_status,
+        "overall_risk": highest_risk,
+        "warnings": list(dict.fromkeys(warnings)),
+    }
 
 
 # =========================================================
 # TOPIC DETECTION
 # =========================================================
 
-def find_topics(text):
+def detect_topics(text):
 
     text_lower = text.lower()
 
@@ -295,11 +401,11 @@ def find_topics(text):
 
     for topic, keywords in TOPIC_KEYWORDS.items():
 
-        for keyword in keywords:
-
-            if keyword.lower() in text_lower:
-                topics.append(topic)
-                break
+        if any(
+            keyword.lower() in text_lower
+            for keyword in keywords
+        ):
+            topics.append(topic)
 
     return topics
 
@@ -314,15 +420,65 @@ def detect_actions(text):
 
     actions = []
 
-    for action, patterns in ACTION_PATTERNS.items():
+    for action, keywords in ACTION_KEYWORDS.items():
 
-        for pattern in patterns:
+        if any(
+            keyword.lower() in text_lower
+            for keyword in keywords
+        ):
+            actions.append(action)
 
-            if re.search(pattern, text_lower):
-                actions.append(action)
-                break
+    # Prevent Minted_Mind from becoming MINT
+    if (
+        "minted_mind" in text_lower
+        or "minted-mind" in text_lower
+    ):
+        if "MINT" in actions:
+            actions.remove("MINT")
 
     return actions
+
+
+# =========================================================
+# DEADLINE DETECTION
+# =========================================================
+
+def detect_deadlines(text):
+
+    patterns = [
+        r"\btoday\b",
+        r"\btonight\b",
+        r"\btomorrow\b",
+        r"\bdeadline\b",
+        r"\b\d+\s*minutes?\b",
+        r"\b\d+\s*hours?\b",
+
+        r"امروز",
+        r"امشب",
+        r"فردا",
+        r"مهلت",
+
+        r"ساعت\s*\d{1,2}",
+        r"\d+\s*دقیقه",
+        r"\d+\s*ساعت",
+        r"تا\s+\d+",
+    ]
+
+    results = []
+
+    for pattern in patterns:
+
+        matches = re.findall(
+            pattern,
+            text,
+            flags=re.IGNORECASE
+        )
+
+        for match in matches:
+            if match not in results:
+                results.append(match)
+
+    return results
 
 
 # =========================================================
@@ -363,189 +519,100 @@ def detect_event(text, topics, deadlines):
 
 
 # =========================================================
-# LINKS
+# RISK DETECTION
 # =========================================================
 
-def extract_links(text):
+def calculate_risk(
+    text,
+    topics,
+    actions,
+    sources
+):
 
-    return re.findall(
-        r"https?://[^\s]+",
-        text
-    )
+    score = 0
 
+    text_lower = text.lower()
 
-def classify_links(links):
+    if "MINT" in topics:
+        score += 20
 
-    result = []
+    if "CLAIM" in topics:
+        score += 20
 
-    for link in links:
+    if "CONNECT_WALLET" in actions:
+        score += 25
 
-        try:
+    if "MINT" in actions:
+        score += 20
 
-            domain = urlparse(link).netloc.lower()
+    if "CLAIM" in actions:
+        score += 15
 
-            result.append({
-                "url": link,
-                "domain": domain,
-            })
+    for source in sources:
 
-        except Exception:
-            pass
+        if source["risk"] == "MEDIUM":
+            score += 15
 
-    return result
+        elif source["risk"] == "HIGH":
+            score += 40
 
-
-# =========================================================
-# DEADLINE DETECTION
-# =========================================================
-
-def detect_deadline(text):
-
-    patterns = [
-
-        # English
-        r"\b\d{1,2}:\d{2}\s?(am|pm)?\b",
-        r"\b(today|tonight|tomorrow)\b",
-        r"\b\d{1,2}\s?(minutes?|hours?)\b",
-        r"\bdeadline\b",
-        r"\bends?\b",
-        r"\bends?\s+\w+",
-
-        # Persian
-        r"امروز",
-        r"امشب",
-        r"فردا",
-        r"ساعت\s*\d{1,2}",
-        r"\d+\s*دقیقه",
-        r"\d+\s*ساعت",
-        r"مهلت",
-        r"تا\s+\d+",
+    scam_words = [
+        "seed phrase",
+        "private key",
+        "recovery phrase",
+        "password",
+        "send crypto",
+        "send us",
+        "deposit to claim",
     ]
 
-    matches = []
+    if any(
+        word in text_lower
+        for word in scam_words
+    ):
+        score += 50
 
-    for pattern in patterns:
+    if score >= 70:
+        return "HIGH"
 
-        found = re.findall(
-            pattern,
-            text,
-            flags=re.IGNORECASE
-        )
+    if score >= 35:
+        return "MEDIUM"
 
-        for item in found:
-
-            if isinstance(item, tuple):
-
-                item = " ".join(
-                    x for x in item if x
-                )
-
-            matches.append(item)
-
-    return list(dict.fromkeys(matches))
+    return "LOW"
 
 
 # =========================================================
 # PRIORITY
 # =========================================================
 
-def determine_priority(topics, actions):
+def calculate_priority(
+    risk,
+    actions,
+    deadlines,
+    source_risk
+):
 
-    if any(
-        action in actions
-        for action in [
-            "DEPOSIT",
-            "WITHDRAW",
-            "BUY",
-            "SELL",
-        ]
+    if risk == "HIGH":
+        return "🔴 HIGH"
+
+    if (
+        source_risk == "HIGH"
+        or "CLAIM" in actions
+        or deadlines
     ):
         return "🔴 HIGH"
 
-    if any(
-        topic in HIGH_PRIORITY_TOPICS
-        for topic in topics
+    if (
+        actions
+        or risk == "MEDIUM"
     ):
-        return "🔴 HIGH"
-
-    if any(
-        topic in MEDIUM_PRIORITY_TOPICS
-        for topic in topics
-    ):
-        return "🟠 MEDIUM"
-
-    if actions:
         return "🟠 MEDIUM"
 
     return "🟢 LOW"
 
 
 # =========================================================
-# RISK
-# =========================================================
-
-def determine_risk(actions):
-
-    if any(
-        action in HIGH_RISK_ACTIONS
-        for action in actions
-    ):
-        return "🔴 HIGH"
-
-    if any(
-        action in MEDIUM_RISK_ACTIONS
-        for action in actions
-    ):
-        return "🟠 MEDIUM"
-
-    if any(
-        action in LOW_RISK_ACTIONS
-        for action in actions
-    ):
-        return "🟢 LOW"
-
-    return "🟢 LOW"
-
-
-# =========================================================
-# PRIMARY ACTION
-# =========================================================
-
-def determine_action(actions):
-
-    if not actions:
-        return None
-
-    priority = [
-        "DEPOSIT",
-        "WITHDRAW",
-        "BUY",
-        "SELL",
-        "CONNECT_WALLET",
-        "CLAIM",
-        "MINT",
-        "STAKE",
-        "BRIDGE",
-        "VOTE",
-        "REGISTER",
-        "VERIFY",
-        "APPLY",
-        "JOIN",
-        "FOLLOW",
-        "REPOST",
-        "LIKE",
-    ]
-
-    for action in priority:
-
-        if action in actions:
-            return action
-
-    return actions[0]
-
-
-# =========================================================
-# CONFIDENCE SCORE
+# CONFIDENCE
 # =========================================================
 
 def calculate_confidence(
@@ -554,187 +621,51 @@ def calculate_confidence(
     actions,
     deadlines,
     event_detected,
-    links
+    links,
+    sources
 ):
 
     score = 50
 
-    # Topic detected
     if topics:
         score += 10
 
-    # Action detected
     if actions:
         score += 15
 
-    # Multiple actions
     if len(actions) >= 2:
         score += 5
 
-    # Deadline detected
     if deadlines:
         score += 10
 
-    # Event detected
     if event_detected:
         score += 5
 
-    # Link exists
     if links:
         score += 5
 
-    # Avoid false positives from standalone names
-    if "Minted_Mind" in text or "minted_mind" in text:
-        if "MINT" not in topics:
+    if sources:
+
+        known_sources = [
+            s for s in sources
+            if s["status"] == "KNOWN"
+        ]
+
+        suspicious_sources = [
+            s for s in sources
+            if s["risk"] == "HIGH"
+        ]
+
+        if known_sources:
             score += 5
 
-    return min(score, 100)
+        if suspicious_sources:
+            score -= 10
 
-
-# =========================================================
-# EXPLANATION
-# =========================================================
-
-def build_reason(
-    topics,
-    actions,
-    deadlines,
-    event_detected
-):
-
-    reasons = []
-
-    if topics:
-        reasons.append(
-            "موضوع اصلی پیام شناسایی شد."
-        )
-
-    if actions:
-        reasons.append(
-            "یک یا چند اقدام عملی در پیام شناسایی شد."
-        )
-
-    if deadlines:
-        reasons.append(
-            "زمان یا Deadline در پیام وجود دارد."
-        )
-
-    if event_detected:
-        reasons.append(
-            "پیام شامل یک رویداد قابل پیگیری است."
-        )
-
-    if not reasons:
-        reasons.append(
-            "اقدام مشخصی از متن پیام شناسایی نشد."
-        )
-
-    return " ".join(reasons)
-
-
-# =========================================================
-# STEPS
-# =========================================================
-
-def build_steps(action):
-
-    steps = {
-
-        "CLAIM": [
-            "1. فقط از لینک رسمی پروژه وارد صفحه Claim شو.",
-            "2. دامنه سایت را بررسی کن.",
-            "3. شرایط و مقدار Claim را بررسی کن.",
-            "4. شبکه و Wallet صحیح را انتخاب کن.",
-            "5. قبل از تأیید، جزئیات تراکنش را بررسی کن.",
-        ],
-
-        "CONNECT_WALLET": [
-            "1. فقط از سایت رسمی پروژه وارد شو.",
-            "2. دامنه سایت را دقیق بررسی کن.",
-            "3. Wallet را فقط در صورت معتبر بودن سایت متصل کن.",
-            "4. اگر درخواست امضای مشکوک بود، تأیید نکن.",
-        ],
-
-        "MINT": [
-            "1. سایت رسمی پروژه را باز کن.",
-            "2. قرارداد و شبکه را بررسی کن.",
-            "3. قیمت Mint و Gas را بررسی کن.",
-            "4. جزئیات تراکنش Wallet را قبل از امضا بررسی کن.",
-        ],
-
-        "STAKE": [
-            "1. قرارداد رسمی Staking را پیدا کن.",
-            "2. سود و مدت قفل را بررسی کن.",
-            "3. کارمزدها و ریسک قرارداد را بررسی کن.",
-            "4. فقط پس از تأیید اطلاعات اقدام کن.",
-        ],
-
-        "BRIDGE": [
-            "1. شبکه مبدأ و مقصد را بررسی کن.",
-            "2. Bridge رسمی را پیدا کن.",
-            "3. کارمزد و مقدار دریافتی را بررسی کن.",
-            "4. ابتدا با مقدار بسیار کم تست کن.",
-        ],
-
-        "DEPOSIT": [
-            "1. پلتفرم رسمی را بررسی کن.",
-            "2. شبکه و آدرس مقصد را کنترل کن.",
-            "3. ابتدا مقدار بسیار کمی ارسال کن.",
-            "4. پس از تأیید، انتقال اصلی را انجام بده.",
-        ],
-
-        "WITHDRAW": [
-            "1. شبکه مقصد را بررسی کن.",
-            "2. آدرس Wallet را چند بار کنترل کن.",
-            "3. کارمزد را بررسی کن.",
-            "4. ابتدا با مقدار کم تست کن.",
-        ],
-
-        "BUY": [
-            "1. بازار و صرافی موردنظر را مشخص کن.",
-            "2. قرارداد رسمی دارایی را بررسی کن.",
-            "3. قیمت، نقدشوندگی و کارمزد را بررسی کن.",
-            "4. قبل از تأیید سفارش، جزئیات را کنترل کن.",
-        ],
-
-        "SELL": [
-            "1. بازار و صرافی را بررسی کن.",
-            "2. قیمت و نقدشوندگی را بررسی کن.",
-            "3. مقدار فروش را مشخص کن.",
-            "4. قیمت نهایی سفارش را کنترل کن.",
-        ],
-
-        "JOIN": [
-            "1. لینک رسمی فعالیت را بررسی کن.",
-            "2. شرایط شرکت را بخوان.",
-            "3. زمان شروع و نحوه ورود را بررسی کن.",
-            "4. در صورت معتبر بودن، در فعالیت شرکت کن.",
-        ],
-
-        "REGISTER": [
-            "1. صفحه رسمی ثبت‌نام را باز کن.",
-            "2. دامنه سایت را بررسی کن.",
-            "3. اطلاعات لازم را تکمیل کن.",
-        ],
-
-        "FOLLOW": [
-            "1. اکانت رسمی را بررسی کن.",
-            "2. فقط اکانت تأییدشده یا رسمی را Follow کن.",
-        ],
-
-        "REPOST": [
-            "1. مطمئن شو پست متعلق به اکانت رسمی است.",
-            "2. در صورت معتبر بودن، Repost کن.",
-        ],
-    }
-
-    return steps.get(
-        action,
-        [
-            "1. منبع رسمی پیام را بررسی کن.",
-            "2. مشخص کن آیا اقدام عملی لازم است.",
-            "3. قبل از اقدام، اطلاعات را دوباره بررسی کن.",
-        ],
+    return max(
+        0,
+        min(score, 100)
     )
 
 
@@ -744,17 +675,11 @@ def build_steps(action):
 
 def analyze_message(text, link):
 
-    text = clean_text(text)
-
-    topics = find_topics(text)
+    topics = detect_topics(text)
 
     actions = detect_actions(text)
 
-    deadlines = detect_deadline(text)
-
-    links = extract_links(text)
-
-    link_info = classify_links(links)
+    deadlines = detect_deadlines(text)
 
     event_detected = detect_event(
         text,
@@ -762,8 +687,23 @@ def analyze_message(text, link):
         deadlines
     )
 
-    # Competition/event with a concrete time
-    # becomes an actionable JOIN event.
+    links = extract_links(text)
+
+    # Include Telegram post link
+    if link and link not in links:
+        links.append(link)
+
+    source_analysis = analyze_sources(
+        text,
+        links
+    )
+
+    sources = source_analysis["sources"]
+
+    # -----------------------------------------------------
+    # Competition automatically means JOIN
+    # -----------------------------------------------------
+
     if (
         event_detected
         and "JOIN" not in actions
@@ -771,14 +711,76 @@ def analyze_message(text, link):
     ):
         actions.append("JOIN")
 
-    action = determine_action(actions)
+    # -----------------------------------------------------
+    # Risk
+    # -----------------------------------------------------
 
-    priority = determine_priority(
+    risk = calculate_risk(
+        text,
         topics,
-        actions
+        actions,
+        sources
     )
 
-    risk = determine_risk(actions)
+    source_risk = source_analysis[
+        "overall_risk"
+    ]
+
+    priority = calculate_priority(
+        risk,
+        actions,
+        deadlines,
+        source_risk
+    )
+
+    # -----------------------------------------------------
+    # Financial action
+    # -----------------------------------------------------
+
+    financial_action = any(
+        action in actions
+        for action in [
+            "CONNECT_WALLET",
+            "MINT",
+            "CLAIM",
+        ]
+    )
+
+    # -----------------------------------------------------
+    # Action required
+    # -----------------------------------------------------
+
+    action_required = bool(actions)
+
+    # -----------------------------------------------------
+    # Primary action
+    # -----------------------------------------------------
+
+    if actions:
+
+        action_order = [
+            "CONNECT_WALLET",
+            "MINT",
+            "CLAIM",
+            "REGISTER",
+            "JOIN",
+        ]
+
+        action = next(
+            (
+                item
+                for item in action_order
+                if item in actions
+            ),
+            actions[0]
+        )
+
+    else:
+        action = None
+
+    # -----------------------------------------------------
+    # Confidence
+    # -----------------------------------------------------
 
     confidence = calculate_confidence(
         text,
@@ -786,34 +788,61 @@ def analyze_message(text, link):
         actions,
         deadlines,
         event_detected,
-        links
+        links,
+        sources
     )
 
-    reason = build_reason(
-        topics,
-        actions,
-        deadlines,
-        event_detected
-    )
+    # -----------------------------------------------------
+    # Explanation
+    # -----------------------------------------------------
 
-    action_required = action is not None
+    reasons = []
 
-    financial_action = any(
-        action_name in actions
-        for action_name in [
-            "DEPOSIT",
-            "WITHDRAW",
-            "BUY",
-            "SELL",
-            "MINT",
-            "CLAIM",
-            "STAKE",
-            "BRIDGE",
-        ]
-    )
+    if topics:
+        reasons.append(
+            "موضوع مرتبط با Web3 شناسایی شد"
+        )
+
+    if actions:
+        reasons.append(
+            "اقدام قابل انجام شناسایی شد"
+        )
+
+    if event_detected:
+        reasons.append(
+            "رویداد یا مسابقه شناسایی شد"
+        )
+
+    if deadlines:
+        reasons.append(
+            "محدودیت زمانی شناسایی شد"
+        )
+
+    if source_analysis["overall_status"] == "UNVERIFIED":
+        reasons.append(
+            "لینک ناشناخته یا تأییدنشده است"
+        )
+
+    if source_analysis["overall_status"] == "SUSPICIOUS":
+        reasons.append(
+            "هشدار امنیتی برای منبع شناسایی شد"
+        )
+
+    if not reasons:
+        reasons.append(
+            "مورد مهمی برای اقدام شناسایی نشد"
+        )
+
+    reason = "؛ ".join(reasons)
+
+    # -----------------------------------------------------
+    # Final result
+    # -----------------------------------------------------
 
     return {
+
         "priority": priority,
+
         "risk": risk,
 
         "confidence": confidence,
@@ -828,19 +857,27 @@ def analyze_message(text, link):
 
         "financial_action": financial_action,
 
-        "event_detected": event_detected,
-
         "deadlines": deadlines,
 
+        "event": event_detected,
+
+        "links": links,
+
+        "sources": sources,
+
+        "source_status": source_analysis[
+            "overall_status"
+        ],
+
+        "source_risk": source_analysis[
+            "overall_risk"
+        ],
+
+        "source_warnings": source_analysis[
+            "warnings"
+        ],
+
         "reason": reason,
-
-        "links": link_info,
-
-        "steps": (
-            build_steps(action)
-            if action_required
-            else []
-        ),
 
         "text": text,
 
@@ -849,117 +886,186 @@ def analyze_message(text, link):
 
 
 # =========================================================
-# TELEGRAM FORMAT
+# TELEGRAM FORMATTER
 # =========================================================
 
 def format_alert(result):
 
-    message = (
-        "🤖 NABU INTELLIGENCE ALERT\n\n"
-        f"اهمیت: {result['priority']}\n"
-        f"⚠️ ریسک: {result['risk']}\n"
-        f"🧠 اعتماد تحلیل: {result['confidence']}%\n"
+    lines = []
+
+    lines.append(
+        "🤖 NABU INTELLIGENCE ALERT"
     )
 
-    if result["action_required"]:
+    lines.append("")
 
-        message += (
-            "\n⚡ اقدام لازم: بله\n"
-            f"🎯 اقدام اصلی: {result['action']}\n"
+    lines.append(
+        f"اهمیت: {result['priority']}"
+    )
+
+    lines.append(
+        f"⚠️ ریسک: {result['risk']}"
+    )
+
+    lines.append(
+        f"🎯 اطمینان تحلیل: {result['confidence']}%"
+    )
+
+    lines.append("")
+
+    lines.append(
+        f"⚡ اقدام لازم: "
+        f"{'بله' if result['action_required'] else 'خیر'}"
+    )
+
+    if result["action"]:
+
+        lines.append(
+            f"🎯 اقدام اصلی: {result['action']}"
         )
 
-        if len(result["actions"]) > 1:
+    if result["actions"]:
 
-            message += (
-                "📋 همه اقدامات: "
-                + ", ".join(result["actions"])
-                + "\n"
-            )
-
-    else:
-
-        message += (
-            "\nℹ️ اقدام لازم: خیر\n"
+        lines.append(
+            "📋 همه اقدامات: "
+            + ", ".join(result["actions"])
         )
 
-    if result["event_detected"]:
+    if result["event"]:
 
-        message += (
-            "\n📅 رویداد قابل پیگیری: بله\n"
-        )
-
-    if result["topics"]:
-
-        message += (
-            "\n📌 موضوع:\n"
-            + ", ".join(result["topics"])
-            + "\n"
+        lines.append(
+            "🎪 رویداد: شناسایی شد"
         )
 
     if result["deadlines"]:
 
-        message += (
-            "\n⏰ زمان/Deadline احتمالی:\n"
+        lines.append(
+            "⏰ زمان‌ها: "
             + ", ".join(result["deadlines"])
-            + "\n"
         )
 
-    message += (
-        "\n🔍 دلیل تحلیل:\n"
-        + result["reason"]
-        + "\n"
+    lines.append("")
+
+    lines.append(
+        "🔎 SOURCE ANALYSIS"
     )
 
-    message += (
-        "\n📝 پیام:\n"
-        + result["text"][:2500]
-        + "\n"
+    lines.append(
+        f"وضعیت منبع: "
+        f"{result['source_status']}"
     )
 
-    if result["action_required"]:
-
-        message += (
-            "\n🛠 مراحل پیشنهادی:\n"
-        )
-
-        for step in result["steps"]:
-
-            message += step + "\n"
-
-    message += (
-        "\n💰 اقدام مالی/Wallet: "
-        + (
-            "بله"
-            if result["financial_action"]
-            else "خیر"
-        )
-        + "\n"
+    lines.append(
+        f"ریسک منبع: "
+        f"{result['source_risk']}"
     )
 
-    if result["links"]:
+    for source in result["sources"]:
 
-        message += (
-            "\n🔗 لینک‌های شناسایی‌شده:\n"
+        lines.append(
+            f"🌐 {source['domain']} "
+            f"→ {source['status']} / "
+            f"{source['risk']}"
         )
 
-        for item in result["links"][:5]:
+    if result["source_warnings"]:
 
-            message += (
-                f"- {item['domain']}\n"
+        lines.append("")
+
+        lines.append(
+            "🚨 هشدارهای امنیتی:"
+        )
+
+        for warning in result[
+            "source_warnings"
+        ]:
+
+            lines.append(
+                f"• {warning}"
             )
 
-    message += (
-        "\n📎 منبع:\n"
-        + result["link"]
+    lines.append("")
+
+    lines.append(
+        "📝 دلیل تحلیل:"
     )
 
-    message += (
-        "\n\n⚠️ تحلیل خودکار است. "
-        "قبل از هر اقدام مالی، اتصال Wallet "
-        "یا امضای تراکنش، منبع رسمی و "
-        "جزئیات را بررسی کن."
+    lines.append(
+        result["reason"]
     )
 
-    return message
+    lines.append("")
+
+    lines.append(
+        f"💰 اقدام مالی/کیف پول: "
+        f"{'بله' if result['financial_action'] else 'خیر'}"
+    )
+
+    lines.append("")
+
+    lines.append(
+        "🔗 لینک پست:"
+    )
+
+    lines.append(
+        result["link"]
+    )
+
+    return "\n".join(lines)
+
+
+
+قدم ۲ — تست
+
+
+بعد از ذخیره فایل، برو به:
+
+
+GitHub → Actions → Test Analyzer → Run workflow
+
+
+این تست باید قابلیت‌های قبلی را همچنان پاس کند و علاوه بر آن Source Analysis را هم نشان دهد.
+
+
+مثلاً برای:
+
+
+Mint is live!
+Connect your wallet and mint now.
+https://example.com/claim
+
+
+
+Agent باید چیزی شبیه این تشخیص دهد:
+
+
+🔎 SOURCE ANALYSIS
+وضعیت منبع: UNVERIFIED
+ریسک منبع: MEDIUM
+
+🌐 example.com → UNKNOWN / MEDIUM
+
+🚨 هشدارهای امنیتی:
+• Domain is not in the trusted source list
+• Sensitive crypto action detected on an unverified domain
+
+
+
+و اگر لینکی شبیه:
+
+
+https://123.45.67.89/claim
+
+
+
+باشد:
+
+
+ریسک منبع: HIGH
+IP_ADDRESS → SUSPICIOUS / HIGH
+
+
+
+نکته مهم: این نسخه «تأیید واقعی مالکیت یک دامنه» انجام نمی‌دهد؛ فعلاً با allowlist و الگوهای امنیتی کار می‌کند. مرحله بعدی می‌تواند Live URL Verification + Scam Intelligence باشد تا Agent قبل از هشدار، خود لینک را هم بررسی کند.
 
 
