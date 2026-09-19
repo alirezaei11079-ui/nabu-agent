@@ -146,10 +146,30 @@ def main():
 
         print(f"Analyzing post: {post['id']}")
 
-        analysis = analyze_message(
-            post["text"],
-            post["link"],
-        )
+      analysis = analyze_message(
+    post["text"],
+    post["link"]
+)
+
+message = format_alert(
+    analysis
+)
+
+intelligence = build_action_intelligence(
+    analysis
+)
+
+intelligence_message = format_action_intelligence(
+    intelligence
+)
+
+send_telegram(
+    message
+)
+
+send_telegram(
+    intelligence_message
+)  
 
         message = format_alert(analysis)
 
