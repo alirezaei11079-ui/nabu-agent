@@ -4,7 +4,10 @@ import requests
 from bs4 import BeautifulSoup
 
 from analyzer import analyze_message, format_alert
-
+from action_intelligence import (
+    build_action_intelligence,
+    format_action_intelligence,
+)
 CHANNEL = "web3nabu"
 STATE_FILE = "telegram_state.json"
 
