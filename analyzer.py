@@ -84,6 +84,9 @@ TOPIC_KEYWORDS = {
         "contest",
         "tournament",
         "challenge",
+        "مسابقه",
+        "مسابقه داریم",
+        "رقابت",
     ],
 
     "PARTNERSHIP": [
@@ -129,6 +132,8 @@ ACTION_PATTERNS = {
         r"\bsign up\b",
         r"\bsignup\b",
         r"\bregistration\b",
+        r"ثبت نام",
+        r"ثبت‌نام",
     ],
 
     "DEPOSIT": [
@@ -190,6 +195,11 @@ ACTION_PATTERNS = {
         r"\bjoin\b",
         r"\bjoin us\b",
         r"\bjoin the\b",
+        r"شرکت کنید",
+        r"شرکت کن",
+        r"وارد مسابقه شوید",
+        r"وارد مسابقه شو",
+        r"در مسابقه شرکت",
     ],
 
     "FOLLOW": [
@@ -322,6 +332,7 @@ def classify_links(links):
     for link in links:
 
         try:
+
             domain = urlparse(link).netloc.lower()
 
             result.append({
@@ -335,15 +346,31 @@ def classify_links(links):
     return result
 
 
+# =========================
+# DEADLINE DETECTION
+# =========================
+
 def detect_deadline(text):
 
     patterns = [
+
+        # English
         r"\b\d{1,2}:\d{2}\s?(am|pm)?\b",
         r"\b(today|tonight|tomorrow)\b",
         r"\b\d{1,2}\s?(minutes?|hours?)\b",
         r"\bdeadline\b",
         r"\bends?\b",
         r"\bends?\s+\w+",
+
+        # Persian
+        r"امروز",
+        r"امشب",
+        r"فردا",
+        r"ساعت\s*\d{1,2}",
+        r"\d+\s*دقیقه",
+        r"\d+\s*ساعت",
+        r"مهلت",
+        r"تا\s+\d+",
     ]
 
     matches = []
@@ -359,6 +386,7 @@ def detect_deadline(text):
         for item in found:
 
             if isinstance(item, tuple):
+
                 item = " ".join(
                     x for x in item if x
                 )
@@ -367,6 +395,10 @@ def detect_deadline(text):
 
     return list(dict.fromkeys(matches))
 
+
+# =========================
+# PRIORITY
+# =========================
 
 def determine_priority(topics, actions):
 
@@ -396,6 +428,10 @@ def determine_priority(topics, actions):
     return "🟢 LOW"
 
 
+# =========================
+# RISK
+# =========================
+
 def determine_risk(actions):
 
     if any(
@@ -418,6 +454,10 @@ def determine_risk(actions):
 
     return "🟢 LOW"
 
+
+# =========================
+# PRIMARY ACTION
+# =========================
 
 def determine_action(actions):
 
@@ -610,9 +650,11 @@ def analyze_message(text, link):
         "financial_action": financial_action,
         "links": link_info,
         "deadlines": deadlines,
-        "steps": build_steps(action)
-        if action_required
-        else [],
+        "steps": (
+            build_steps(action)
+            if action_required
+            else []
+        ),
         "text": text,
         "link": link,
     }
@@ -708,3 +750,5 @@ def format_alert(result):
     )
 
     return message
+
+
