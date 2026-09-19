@@ -3,10 +3,6 @@ import requests
 from urllib.parse import urlparse
 
 
-# =========================================================
-# KEYWORDS
-# =========================================================
-
 TOPIC_KEYWORDS = {
     "MINT": [
         "mint",
@@ -85,10 +81,6 @@ ACTION_KEYWORDS = {
 }
 
 
-# =========================================================
-# SOURCE DATABASE
-# =========================================================
-
 TRUSTED_DOMAINS = {
     "telegram.org",
     "t.me",
@@ -99,9 +91,11 @@ TRUSTED_DOMAINS = {
     "discord.gg",
 }
 
+
 TEST_DOMAINS = {
     "example.com",
 }
+
 
 URL_SHORTENERS = {
     "bit.ly",
@@ -114,6 +108,7 @@ URL_SHORTENERS = {
     "rb.gy",
 }
 
+
 SUSPICIOUS_TLDS = {
     ".click",
     ".top",
@@ -125,454 +120,6 @@ SUSPICIOUS_TLDS = {
     ".cam",
 }
 
-
-# =========================================================
-# URL HELPERS
-# =========================================================
-
-def extract_links(text):
-    if not text:
-        return []
-
-    pattern = r"https?://[^\s<>\"]+"
-
-    links = re.findall(pattern, text)
-
-    cleaned = []
-
-    for link in links:
-        link = link.rstrip(".,!?;:)]}")
-
-        if link not in cleaned:
-            cleaned.append(link)
-
-    return cleaned
-
-
-def normalize_domain(domain):
-    domain = domain.lower().strip()
-
-    if domain.startswith("www."):
-        domain = domain[4:]
-
-    return domain
-
-
-def is_ip_address(domain):
-    ipv4_pattern = r"^\d{1,3}(\.\d{1,3}){3}$"
-
-    return bool(
-        re.match(
-            ipv4_pattern,
-            domain
-        )
-    )
-
-
-def is_punycode(domain):
-    return "xn--" in domain.lower()
-
-
-def is_trusted_domain(domain):
-    domain = normalize_domain(domain)
-
-    if domain in TRUSTED_DOMAINS:
-        return True
-
-    for trusted in TRUSTED_DOMAINS:
-
-        if domain.endswith("." + trusted):
-            return True
-
-    return False
-
-
-def is_test_domain(domain):
-    domain = normalize_domain(domain)
-
-    return domain in TEST_DOMAINS
-
-
-def is_shortener(domain):
-    domain = normalize_domain(domain)
-
-    return domain in URL_SHORTENERS
-
-
-def has_suspicious_tld(domain):
-    domain = normalize_domain(domain)
-
-    return any(
-        domain.endswith(tld)
-        for tld in SUSPICIOUS_TLDS
-    )
-
-
-# =========================================================
-# SOURCE ANALYSIS
-# =========================================================
-
-def analyze_source(url, text=""):
-
-    result = {
-        "url": url,
-        "domain": "",
-        "status": "UNKNOWN",
-        "risk": "LOW",
-        "warnings": [],
-    }
-
-    try:
-        parsed = urlparse(url)
-
-        if not parsed.netloc:
-
-            result["status"] = "INVALID"
-            result["risk"] = "HIGH"
-
-            result["warnings"].append(
-                "Invalid URL"
-            )
-
-            return result
-
-        domain = normalize_domain(
-            parsed.netloc
-        )
-
-        result["domain"] = domain
-
-        if is_test_domain(domain):
-
-            result["status"] = "TEST"
-            result["risk"] = "LOW"
-
-            return result
-
-        if is_ip_address(domain):
-
-            result["status"] = "SUSPICIOUS"
-            result["risk"] = "HIGH"
-
-            result["warnings"].append(
-                "URL uses an IP address"
-            )
-
-            return result
-
-        if is_punycode(domain):
-
-            result["status"] = "SUSPICIOUS"
-            result["risk"] = "HIGH"
-
-            result["warnings"].append(
-                "Punycode domain detected"
-            )
-
-            return result
-
-        if is_shortener(domain):
-
-            result["status"] = "SUSPICIOUS"
-            result["risk"] = "HIGH"
-
-            result["warnings"].append(
-                "URL shortener detected"
-            )
-
-            return result
-
-        if has_suspicious_tld(domain):
-
-            result["status"] = "UNKNOWN"
-            result["risk"] = "MEDIUM"
-
-            result["warnings"].append(
-                "Suspicious top-level domain"
-            )
-
-            return result
-
-        if is_trusted_domain(domain):
-
-            result["status"] = "KNOWN"
-            result["risk"] = "LOW"
-
-            return result
-
-        result["status"] = "UNKNOWN"
-        result["risk"] = "LOW"
-
-        sensitive_words = [
-            "claim",
-            "mint",
-            "connect wallet",
-            "wallet",
-            "airdrop",
-            "reward",
-            "verify",
-            "crypto",
-            "token",
-        ]
-
-        lower_text = text.lower()
-
-        if any(
-            word in lower_text
-            for word in sensitive_words
-        ):
-
-            result["risk"] = "MEDIUM"
-
-            result["warnings"].append(
-                "Unknown domain used in sensitive crypto context"
-            )
-
-    except Exception as error:
-
-        result["status"] = "INVALID"
-        result["risk"] = "HIGH"
-
-        result["warnings"].append(
-            str(error)
-        )
-
-    return result
-
-
-# =========================================================
-# LIVE URL VERIFICATION
-# =========================================================
-
-def verify_url_live(url):
-
-    result = {
-        "url": url,
-        "reachable": False,
-        "final_url": url,
-        "final_domain": "",
-        "https": False,
-        "redirected": False,
-        "status_code": None,
-        "error": None,
-    }
-
-    try:
-
-        parsed = urlparse(url)
-
-        if parsed.scheme != "https":
-            result["https"] = False
-        else:
-            result["https"] = True
-
-        response = requests.get(
-            url,
-            headers={
-                "User-Agent": "Mozilla/5.0 Nabu-Agent"
-            },
-            timeout=10,
-            allow_redirects=True,
-            stream=True,
-        )
-
-        result["reachable"] = True
-
-        result["status_code"] = response.status_code
-
-        result["final_url"] = response.url
-
-        final_parsed = urlparse(
-            response.url
-        )
-
-        result["final_domain"] = normalize_domain(
-            final_parsed.netloc
-        )
-
-        result["redirected"] = (
-            response.url.rstrip("/")
-            != url.rstrip("/")
-        )
-
-        response.close()
-
-    except requests.exceptions.Timeout:
-
-        result["error"] = "Timeout"
-
-    except requests.exceptions.RequestException as error:
-
-        result["error"] = str(error)
-
-    except Exception as error:
-
-        result["error"] = str(error)
-
-    return result
-
-
-def live_source_security_check(source):
-
-    url = source["url"]
-
-    live = verify_url_live(url)
-
-    source["live"] = live
-
-    if not live["reachable"]:
-
-        source["warnings"].append(
-            "Live URL verification failed"
-        )
-
-        if source["risk"] == "LOW":
-            source["risk"] = "MEDIUM"
-
-        return source
-
-    if not live["https"]:
-
-        source["warnings"].append(
-            "URL does not use HTTPS"
-        )
-
-        source["risk"] = "HIGH"
-
-    if live["redirected"]:
-
-        source["warnings"].append(
-            "URL redirects to another destination"
-        )
-
-        source["redirected_to"] = (
-            live["final_url"]
-        )
-
-        final_domain = live["final_domain"]
-
-        original_domain = source["domain"]
-
-        if (
-            final_domain
-            and final_domain != original_domain
-        ):
-
-            source["warnings"].append(
-                "Final destination uses a different domain"
-            )
-
-            source["risk"] = "HIGH"
-
-    status_code = live["status_code"]
-
-    if status_code:
-
-        if status_code >= 400:
-
-            source["warnings"].append(
-                f"HTTP error status: {status_code}"
-            )
-
-            if source["risk"] == "LOW":
-                source["risk"] = "MEDIUM"
-
-    return source
-
-
-def analyze_sources(text, links):
-
-    sources = []
-
-    for link in links:
-
-        source = analyze_source(
-            link,
-            text
-        )
-
-        # Live verification only for real URLs
-        if source["status"] != "TEST":
-
-            source = live_source_security_check(
-                source
-            )
-
-        sources.append(source)
-
-    if not sources:
-
-        return {
-            "sources": [],
-            "status": "NONE",
-            "risk": "LOW",
-            "warnings": [],
-        }
-
-    risks = [
-        source["risk"]
-        for source in sources
-    ]
-
-    warnings = []
-
-    for source in sources:
-
-        for warning in source["warnings"]:
-
-            if warning not in warnings:
-                warnings.append(warning)
-
-    if "HIGH" in risks:
-
-        overall_risk = "HIGH"
-
-    elif "MEDIUM" in risks:
-
-        overall_risk = "MEDIUM"
-
-    else:
-
-        overall_risk = "LOW"
-
-    statuses = [
-        source["status"]
-        for source in sources
-    ]
-
-    if "SUSPICIOUS" in statuses:
-
-        overall_status = "SUSPICIOUS"
-
-    elif "INVALID" in statuses:
-
-        overall_status = "SUSPICIOUS"
-
-    elif "UNKNOWN" in statuses:
-
-        overall_status = "UNVERIFIED"
-
-    elif "KNOWN" in statuses:
-
-        overall_status = "KNOWN"
-
-    elif "TEST" in statuses:
-
-        overall_status = "TEST"
-
-    else:
-
-        overall_status = "UNKNOWN"
-
-    return {
-        "sources": sources,
-        "status": overall_status,
-        "risk": overall_risk,
-        "warnings": warnings,
-    }
-# =========================================================
-# SCAM & PHISHING INTELLIGENCE
-# =========================================================
 
 KNOWN_BRANDS = {
     "nabu",
@@ -628,15 +175,411 @@ SUSPICIOUS_DOMAIN_WORDS = [
 ]
 
 
-def get_domain_parts(domain):
+def extract_links(text):
+    if not text:
+        return []
+
+    pattern = r"https?://[^\s<>\"]+"
+
+    links = re.findall(
+        pattern,
+        text
+    )
+
+    cleaned = []
+
+    for link in links:
+        link = link.rstrip(
+            ".,!?;:)]}"
+        )
+
+        if link not in cleaned:
+            cleaned.append(link)
+
+    return cleaned
+
+
+def normalize_domain(domain):
+    domain = domain.lower().strip()
+
+    if domain.startswith("www."):
+        domain = domain[4:]
+
+    return domain
+
+
+def is_ip_address(domain):
+    ipv4_pattern = r"^\d{1,3}(\.\d{1,3}){3}$"
+
+    return bool(
+        re.match(
+            ipv4_pattern,
+            domain
+        )
+    )
+
+
+def is_punycode(domain):
+    return "xn--" in domain.lower()
+
+
+def is_trusted_domain(domain):
+    domain = normalize_domain(
+        domain
+    )
+
+    if domain in TRUSTED_DOMAINS:
+        return True
+
+    for trusted in TRUSTED_DOMAINS:
+        if domain.endswith(
+            "." + trusted
+        ):
+            return True
+
+    return False
+
+
+def is_test_domain(domain):
+    domain = normalize_domain(
+        domain
+    )
+
+    return domain in TEST_DOMAINS
+
+
+def is_shortener(domain):
+    domain = normalize_domain(
+        domain
+    )
+
+    return domain in URL_SHORTENERS
+
+
+def has_suspicious_tld(domain):
+    domain = normalize_domain(
+        domain
+    )
+
+    return any(
+        domain.endswith(tld)
+        for tld in SUSPICIOUS_TLDS
+    )
+
+
+def analyze_source(
+    url,
+    text=""
+):
+
+    result = {
+        "url": url,
+        "domain": "",
+        "status": "UNKNOWN",
+        "risk": "LOW",
+        "warnings": [],
+    }
+
+    try:
+        parsed = urlparse(
+            url
+        )
+
+        if not parsed.netloc:
+
+            result["status"] = "INVALID"
+            result["risk"] = "HIGH"
+
+            result["warnings"].append(
+                "Invalid URL"
+            )
+
+            return result
+
+        domain = normalize_domain(
+            parsed.netloc
+        )
+
+        result["domain"] = domain
+
+        if is_test_domain(
+            domain
+        ):
+
+            result["status"] = "TEST"
+            result["risk"] = "LOW"
+
+            return result
+
+        if is_ip_address(
+            domain
+        ):
+
+            result["status"] = "SUSPICIOUS"
+            result["risk"] = "HIGH"
+
+            result["warnings"].append(
+                "URL uses an IP address"
+            )
+
+            return result
+
+        if is_punycode(
+            domain
+        ):
+
+            result["status"] = "SUSPICIOUS"
+            result["risk"] = "HIGH"
+
+            result["warnings"].append(
+                "Punycode domain detected"
+            )
+
+            return result
+
+        if is_shortener(
+            domain
+        ):
+
+            result["status"] = "SUSPICIOUS"
+            result["risk"] = "HIGH"
+
+            result["warnings"].append(
+                "URL shortener detected"
+            )
+
+            return result
+
+        if has_suspicious_tld(
+            domain
+        ):
+
+            result["status"] = "UNKNOWN"
+            result["risk"] = "MEDIUM"
+
+            result["warnings"].append(
+                "Suspicious top-level domain"
+            )
+
+            return result
+
+        if is_trusted_domain(
+            domain
+        ):
+
+            result["status"] = "KNOWN"
+            result["risk"] = "LOW"
+
+            return result
+
+        result["status"] = "UNKNOWN"
+        result["risk"] = "LOW"
+
+        sensitive_words = [
+            "claim",
+            "mint",
+            "connect wallet",
+            "wallet",
+            "airdrop",
+            "reward",
+            "verify",
+            "crypto",
+            "token",
+        ]
+
+        lower_text = text.lower()
+
+        if any(
+            word in lower_text
+            for word in sensitive_words
+        ):
+
+            result["risk"] = "MEDIUM"
+
+            result["warnings"].append(
+                "Unknown domain used in sensitive crypto context"
+            )
+
+    except Exception as error:
+
+        result["status"] = "INVALID"
+        result["risk"] = "HIGH"
+
+        result["warnings"].append(
+            str(error)
+        )
+
+    return result
+
+
+def verify_url_live(url):
+
+    result = {
+        "url": url,
+        "reachable": False,
+        "final_url": url,
+        "final_domain": "",
+        "https": False,
+        "redirected": False,
+        "status_code": None,
+        "error": None,
+    }
+
+    try:
+
+        parsed = urlparse(
+            url
+        )
+
+        if parsed.scheme == "https":
+            result["https"] = True
+
+        response = requests.get(
+            url,
+            headers={
+                "User-Agent": "Mozilla/5.0 Nabu-Agent"
+            },
+            timeout=10,
+            allow_redirects=True,
+            stream=True,
+        )
+
+        result["reachable"] = True
+
+        result["status_code"] = (
+            response.status_code
+        )
+
+        result["final_url"] = (
+            response.url
+        )
+
+        final_parsed = urlparse(
+            response.url
+        )
+
+        result["final_domain"] = normalize_domain(
+            final_parsed.netloc
+        )
+
+        result["redirected"] = (
+            response.url.rstrip("/")
+            != url.rstrip("/")
+        )
+
+        response.close()
+
+    except requests.exceptions.Timeout:
+
+        result["error"] = "Timeout"
+
+    except requests.exceptions.RequestException as error:
+
+        result["error"] = str(
+            error
+        )
+
+    except Exception as error:
+
+        result["error"] = str(
+            error
+        )
+
+    return result
+
+
+def live_source_security_check(
+    source
+):
+
+    url = source["url"]
+
+    live = verify_url_live(
+        url
+    )
+
+    source["live"] = live
+
+    if not live["reachable"]:
+
+        source["warnings"].append(
+            "Live URL verification failed"
+        )
+
+        if source["risk"] == "LOW":
+            source["risk"] = "MEDIUM"
+
+        return source
+
+    if not live["https"]:
+
+        source["warnings"].append(
+            "URL does not use HTTPS"
+        )
+
+        source["risk"] = "HIGH"
+
+    if live["redirected"]:
+
+        source["warnings"].append(
+            "URL redirects to another destination"
+        )
+
+        source["redirected_to"] = (
+            live["final_url"]
+        )
+
+        final_domain = (
+            live["final_domain"]
+        )
+
+        original_domain = (
+            source["domain"]
+        )
+
+        if (
+            final_domain
+            and final_domain != original_domain
+        ):
+
+            source["warnings"].append(
+                "Final destination uses a different domain"
+            )
+
+            source["risk"] = "HIGH"
+
+    status_code = live[
+        "status_code"
+    ]
+
+    if status_code:
+
+        if status_code >= 400:
+
+            source["warnings"].append(
+                f"HTTP error status: {status_code}"
+            )
+
+            if source["risk"] == "LOW":
+                source["risk"] = "MEDIUM"
+
+    return source
+
+
+def get_domain_parts(
+    domain
+):
 
     domain = normalize_domain(
         domain
     )
 
-    parts = domain.split(".")
+    parts = domain.split(
+        "."
+    )
 
     if len(parts) < 2:
+
         return {
             "root": domain,
             "subdomain": "",
@@ -672,22 +615,23 @@ def detect_brand_impersonation(
     for brand in KNOWN_BRANDS:
 
         if brand in domain:
+
             detected_brands.append(
                 brand
             )
 
     if not detected_brands:
+
         return {
             "detected": False,
             "brands": [],
             "reason": None,
         }
 
-    trusted = is_trusted_domain(
+    if is_trusted_domain(
         domain
-    )
+    ):
 
-    if trusted:
         return {
             "detected": False,
             "brands": detected_brands,
@@ -704,7 +648,10 @@ def detect_brand_impersonation(
         for word in SUSPICIOUS_DOMAIN_WORDS
     )
 
-    if suspicious_context or suspicious_domain:
+    if (
+        suspicious_context
+        or suspicious_domain
+    ):
 
         return {
             "detected": True,
@@ -745,10 +692,6 @@ def analyze_phishing(
         "financial_risk": False,
     }
 
-    # -----------------------------------------------------
-    # Suspicious keywords
-    # -----------------------------------------------------
-
     matched_keywords = []
 
     for keyword in PHISHING_KEYWORDS:
@@ -756,6 +699,7 @@ def analyze_phishing(
         if keyword in lower_text:
 
             if keyword not in matched_keywords:
+
                 matched_keywords.append(
                     keyword
                 )
@@ -763,17 +707,15 @@ def analyze_phishing(
     if matched_keywords:
 
         result["score"] += min(
-            len(matched_keywords) * 10,
+            len(
+                matched_keywords
+            ) * 10,
             30
         )
 
         result["flags"].append(
             "Suspicious crypto/security language"
         )
-
-    # -----------------------------------------------------
-    # Wallet risk
-    # -----------------------------------------------------
 
     wallet_words = [
         "connect wallet",
@@ -797,10 +739,6 @@ def analyze_phishing(
             "Wallet interaction requested"
         )
 
-    # -----------------------------------------------------
-    # Private key / seed phrase
-    # -----------------------------------------------------
-
     secret_words = [
         "seed phrase",
         "recovery phrase",
@@ -818,10 +756,6 @@ def analyze_phishing(
         result["flags"].append(
             "Secret wallet credentials requested"
         )
-
-    # -----------------------------------------------------
-    # Crypto transfer
-    # -----------------------------------------------------
 
     transfer_words = [
         "send crypto",
@@ -842,10 +776,6 @@ def analyze_phishing(
             "Crypto transfer or deposit requested"
         )
 
-    # -----------------------------------------------------
-    # Brand impersonation
-    # -----------------------------------------------------
-
     impersonation = detect_brand_impersonation(
         domain,
         text
@@ -864,10 +794,6 @@ def analyze_phishing(
         result["flags"].append(
             impersonation["reason"]
         )
-
-    # -----------------------------------------------------
-    # Suspicious domain structure
-    # -----------------------------------------------------
 
     domain_parts = get_domain_parts(
         domain
@@ -935,19 +861,17 @@ def analyze_phishing(
                     "Suspicious subdomain detected"
                 )
 
-    # -----------------------------------------------------
-    # Combine source risk
-    # -----------------------------------------------------
+    if source.get(
+        "risk"
+    ) == "HIGH":
 
-    if source.get("risk") == "HIGH":
         result["score"] += 25
 
-    elif source.get("risk") == "MEDIUM":
-        result["score"] += 10
+    elif source.get(
+        "risk"
+    ) == "MEDIUM":
 
-    # -----------------------------------------------------
-    # Final phishing risk
-    # -----------------------------------------------------
+        result["score"] += 10
 
     if result["score"] >= 70:
 
@@ -961,7 +885,6 @@ def analyze_phishing(
 
         result["risk"] = "LOW"
 
-    # Remove duplicate flags
     result["flags"] = list(
         dict.fromkeys(
             result["flags"]
@@ -970,7 +893,11 @@ def analyze_phishing(
 
     return result
 
-def analyze_sources(text, links):
+
+def analyze_sources(
+    text,
+    links
+):
 
     sources = []
 
@@ -981,16 +908,11 @@ def analyze_sources(text, links):
             text
         )
 
-        # Live verification only for real URLs
         if source["status"] != "TEST":
 
             source = live_source_security_check(
                 source
             )
-
-        # -------------------------------------------------
-        # Scam / Phishing Intelligence
-        # -------------------------------------------------
 
         phishing = analyze_phishing(
             link,
@@ -1000,7 +922,6 @@ def analyze_sources(text, links):
 
         source["phishing"] = phishing
 
-        # Escalate source risk
         if phishing["risk"] == "HIGH":
 
             source["risk"] = "HIGH"
@@ -1107,81 +1028,9 @@ def analyze_sources(text, links):
     }
 
 
-:::writing{variant="document" id="31574" title="Phishing details for format_alert"}
-
-
-        phishing = source.get(
-            "phishing"
-        )
-
-        if phishing:
-
-            lines.append(
-                f"   🛡️ Phishing risk: {phishing['risk']}"
-            )
-
-            lines.append(
-                f"   🧠 Phishing score: {phishing['score']}"
-            )
-
-            if phishing.get(
-                "brand_impersonation"
-            ):
-
-                brands = ", ".join(
-                    phishing.get(
-                        "brands",
-                        []
-                    )
-                )
-
-                lines.append(
-                    f"   🎭 Brand impersonation: YES ({brands})"
-                )
-
-            if phishing.get(
-                "wallet_risk"
-            ):
-
-                lines.append(
-                    "   👛 Wallet risk: YES"
-                )
-
-            if phishing.get(
-                "financial_risk"
-            ):
-
-                lines.append(
-                    "   💸 Financial transfer risk: YES"
-                )
-
-
-
-
-
-
-Nabu official mint!
-Connect your wallet:
-https://nabu-mint-claim.example
-
-
-
-
-
-🛡️ Phishing risk: HIGH
-🧠 Phishing score: ...
-🎭 Brand impersonation: YES
-👛 Wallet risk: YES
-
-
- 
-
-
-# =========================================================
-# TOPIC DETECTION
-# =========================================================
-
-def detect_topics(text):
+def detect_topics(
+    text
+):
 
     lower_text = text.lower()
 
@@ -1194,27 +1043,30 @@ def detect_topics(text):
             if keyword in lower_text:
 
                 if topic not in topics:
-                    topics.append(topic)
+
+                    topics.append(
+                        topic
+                    )
 
                 break
 
-    # Prevent false MINT detection
     if (
         "minted_mind" in lower_text
         or "minted-mind" in lower_text
     ):
 
         if "MINT" in topics:
-            topics.remove("MINT")
+
+            topics.remove(
+                "MINT"
+            )
 
     return topics
 
 
-# =========================================================
-# ACTION DETECTION
-# =========================================================
-
-def detect_actions(text):
+def detect_actions(
+    text
+):
 
     lower_text = text.lower()
 
@@ -1227,48 +1079,45 @@ def detect_actions(text):
             if keyword in lower_text:
 
                 if action not in actions:
-                    actions.append(action)
+
+                    actions.append(
+                        action
+                    )
 
                 break
 
-    # Prevent false MINT detection
     if (
         "minted_mind" in lower_text
         or "minted-mind" in lower_text
     ):
 
         if "MINT" in actions:
-            actions.remove("MINT")
+
+            actions.remove(
+                "MINT"
+            )
 
     return actions
 
 
-# =========================================================
-# DEADLINE DETECTION
-# =========================================================
-
-def detect_deadlines(text):
+def detect_deadlines(
+    text
+):
 
     deadlines = []
 
     patterns = [
-
         r"\btoday\b",
         r"\btonight\b",
         r"\btomorrow\b",
-
         r"\bdeadline\b",
-
         r"\b\d+\s*(?:minutes?|mins?)\b",
         r"\b\d+\s*(?:hours?|hrs?)\b",
-
         r"امروز",
         r"امشب",
         r"فردا",
         r"مهلت",
-
         r"ساعت\s*\d+",
-
         r"\d+\s*دقیقه",
         r"\d+\s*ساعت",
     ]
@@ -1286,14 +1135,13 @@ def detect_deadlines(text):
             value = match.strip()
 
             if value not in deadlines:
-                deadlines.append(value)
+
+                deadlines.append(
+                    value
+                )
 
     return deadlines
 
-
-# =========================================================
-# EVENT DETECTION
-# =========================================================
 
 def detect_event(
     text,
@@ -1320,20 +1168,22 @@ def detect_event(
     )
 
     if "COMPETITION" in topics:
+
         event_found = True
 
-    if event_found and deadlines:
+    if (
+        event_found
+        and deadlines
+    ):
+
         return True
 
     if "COMPETITION" in topics:
+
         return True
 
     return False
 
-
-# =========================================================
-# RISK CALCULATION
-# =========================================================
 
 def calculate_risk(
     text,
@@ -1384,6 +1234,7 @@ def calculate_risk(
     for word in scam_words:
 
         if word in lower_text:
+
             score += 50
 
     event = (
@@ -1397,9 +1248,12 @@ def calculate_risk(
         "CLAIM",
     }
 
-    if event and not any(
-        action in sensitive_actions
-        for action in actions
+    if (
+        event
+        and not any(
+            action in sensitive_actions
+            for action in actions
+        )
     ):
 
         score = min(
@@ -1408,17 +1262,15 @@ def calculate_risk(
         )
 
     if score >= 70:
+
         return "HIGH"
 
     if score >= 35:
+
         return "MEDIUM"
 
     return "LOW"
 
-
-# =========================================================
-# PRIORITY
-# =========================================================
 
 def calculate_priority(
     risk,
@@ -1427,8 +1279,8 @@ def calculate_priority(
     source_risk
 ):
 
-    # Security or sensitive financial action
     if risk == "HIGH":
+
         return "🔴 HIGH"
 
     if (
@@ -1442,33 +1294,32 @@ def calculate_priority(
             ]
         )
     ):
+
         return "🔴 HIGH"
 
-    # Claim is usually time-sensitive
     if "CLAIM" in actions:
+
         return "🔴 HIGH"
 
-    # Normal competition should not become HIGH
     if (
         "JOIN" in actions
         and "CLAIM" not in actions
         and "MINT" not in actions
         and "CONNECT_WALLET" not in actions
     ):
+
         return "🟠 MEDIUM"
 
     if risk == "MEDIUM":
+
         return "🟠 MEDIUM"
 
     if actions:
+
         return "🟠 MEDIUM"
 
     return "🟢 LOW"
 
-
-# =========================================================
-# CONFIDENCE
-# =========================================================
 
 def calculate_confidence(
     topics,
@@ -1508,6 +1359,7 @@ def calculate_confidence(
         source["status"] == "KNOWN"
         for source in source_list
     ):
+
         confidence += 5
 
     if any(
@@ -1515,6 +1367,7 @@ def calculate_confidence(
         or source["risk"] == "HIGH"
         for source in source_list
     ):
+
         confidence -= 10
 
     confidence = max(
@@ -1528,16 +1381,13 @@ def calculate_confidence(
     return confidence
 
 
-# =========================================================
-# MAIN ANALYSIS
-# =========================================================
-
 def analyze_message(
     text,
     link
 ):
 
     if not text:
+
         text = ""
 
     topics = detect_topics(
@@ -1562,21 +1412,28 @@ def analyze_message(
         text
     )
 
-    if link and link not in links:
-        links.append(link)
+    if (
+        link
+        and link not in links
+    ):
+
+        links.append(
+            link
+        )
 
     source_analysis = analyze_sources(
         text,
         links
     )
 
-    # Competition automatically means JOIN
     if (
         event
         and "JOIN" not in actions
     ):
 
-        actions.append("JOIN")
+        actions.append(
+            "JOIN"
+        )
 
     risk = calculate_risk(
         text,
@@ -1625,24 +1482,28 @@ def analyze_message(
     reasons = []
 
     if topics:
+
         reasons.append(
             "Detected topics: "
             + ", ".join(topics)
         )
 
     if actions:
+
         reasons.append(
             "Detected actions: "
             + ", ".join(actions)
         )
 
     if deadlines:
+
         reasons.append(
             "Detected deadline/time: "
             + ", ".join(deadlines)
         )
 
     if event:
+
         reasons.append(
             "Event or competition detected"
         )
@@ -1689,46 +1550,62 @@ def analyze_message(
     }
 
 
-# =========================================================
-# TELEGRAM ALERT FORMAT
-# =========================================================
+def format_alert(
+    result
+):
 
-def format_alert(result):
+    priority = result[
+        "priority"
+    ]
 
-    priority = result["priority"]
+    risk = result[
+        "risk"
+    ]
 
-    risk = result["risk"]
-
-    confidence = result["confidence"]
+    confidence = result[
+        "confidence"
+    ]
 
     action_required = (
         "بله"
-        if result["action_required"]
+        if result[
+            "action_required"
+        ]
         else "خیر"
     )
 
     financial_action = (
         "بله"
-        if result["financial_action"]
+        if result[
+            "financial_action"
+        ]
         else "خیر"
     )
 
     event = (
         "بله"
-        if result["event"]
+        if result[
+            "event"
+        ]
         else "خیر"
     )
 
-    action = result["action"]
+    action = result[
+        "action"
+    ]
 
     actions = (
-        ", ".join(result["actions"])
+        ", ".join(
+            result["actions"]
+        )
         if result["actions"]
         else "NONE"
     )
 
     deadlines = (
-        ", ".join(result["deadlines"])
+        ", ".join(
+            result["deadlines"]
+        )
         if result["deadlines"]
         else "NONE"
     )
@@ -1753,8 +1630,9 @@ def format_alert(result):
         f"ریسک منبع: {result['source_risk']}",
     ]
 
-    # Source details
-    for source in result["sources"]:
+    for source in result[
+        "sources"
+    ]:
 
         domain = source.get(
             "domain",
@@ -1783,19 +1661,25 @@ def format_alert(result):
 
             reachable = (
                 "YES"
-                if live.get("reachable")
+                if live.get(
+                    "reachable"
+                )
                 else "NO"
             )
 
             https = (
                 "YES"
-                if live.get("https")
+                if live.get(
+                    "https"
+                )
                 else "NO"
             )
 
             redirected = (
                 "YES"
-                if live.get("redirected")
+                if live.get(
+                    "redirected"
+                )
                 else "NO"
             )
 
@@ -1831,6 +1715,52 @@ def format_alert(result):
                     f"   Error: {error}"
                 )
 
+        phishing = source.get(
+            "phishing"
+        )
+
+        if phishing:
+
+            lines.append(
+                f"   🛡️ Phishing risk: {phishing['risk']}"
+            )
+
+            lines.append(
+                f"   🧠 Phishing score: {phishing['score']}"
+            )
+
+            if phishing.get(
+                "brand_impersonation"
+            ):
+
+                brands = ", ".join(
+                    phishing.get(
+                        "brands",
+                        []
+                    )
+                )
+
+                lines.append(
+                    "   🎭 Brand impersonation: "
+                    f"YES ({brands})"
+                )
+
+            if phishing.get(
+                "wallet_risk"
+            ):
+
+                lines.append(
+                    "   👛 Wallet risk: YES"
+                )
+
+            if phishing.get(
+                "financial_risk"
+            ):
+
+                lines.append(
+                    "   💸 Financial transfer risk: YES"
+                )
+
     warnings = result[
         "source_warnings"
     ]
@@ -1860,5 +1790,5 @@ def format_alert(result):
     ])
 
     return "\n".join(
-        lines)
-
+        lines
+    )
