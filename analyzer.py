@@ -2,9 +2,9 @@ import re
 from urllib.parse import urlparse
 
 
-# =========================
+# =========================================================
 # TOPICS
-# =========================
+# =========================================================
 
 TOPIC_KEYWORDS = {
     "AIRDROP": [
@@ -110,9 +110,9 @@ TOPIC_KEYWORDS = {
 }
 
 
-# =========================
+# =========================================================
 # ACTION PATTERNS
-# =========================
+# =========================================================
 
 ACTION_PATTERNS = {
 
@@ -220,9 +220,9 @@ ACTION_PATTERNS = {
 }
 
 
-# =========================
+# =========================================================
 # RISK
-# =========================
+# =========================================================
 
 HIGH_RISK_ACTIONS = {
     "DEPOSIT",
@@ -251,9 +251,9 @@ LOW_RISK_ACTIONS = {
 }
 
 
-# =========================
+# =========================================================
 # PRIORITY
-# =========================
+# =========================================================
 
 HIGH_PRIORITY_TOPICS = {
     "AIRDROP",
@@ -275,13 +275,17 @@ MEDIUM_PRIORITY_TOPICS = {
 }
 
 
-# =========================
-# HELPERS
-# =========================
+# =========================================================
+# TEXT HELPERS
+# =========================================================
 
 def clean_text(text):
     return re.sub(r"\s+", " ", text).strip()
 
+
+# =========================================================
+# TOPIC DETECTION
+# =========================================================
 
 def find_topics(text):
 
@@ -300,6 +304,10 @@ def find_topics(text):
     return topics
 
 
+# =========================================================
+# ACTION DETECTION
+# =========================================================
+
 def detect_actions(text):
 
     text_lower = text.lower()
@@ -316,6 +324,47 @@ def detect_actions(text):
 
     return actions
 
+
+# =========================================================
+# EVENT DETECTION
+# =========================================================
+
+def detect_event(text, topics, deadlines):
+
+    text_lower = text.lower()
+
+    event_keywords = [
+        "competition",
+        "contest",
+        "tournament",
+        "challenge",
+        "مسابقه",
+        "رقابت",
+        "event",
+        "رویداد",
+        "مسابقه داریم",
+    ]
+
+    has_event = any(
+        keyword in text_lower
+        for keyword in event_keywords
+    )
+
+    if not has_event:
+        return False
+
+    if deadlines:
+        return True
+
+    if "COMPETITION" in topics:
+        return True
+
+    return False
+
+
+# =========================================================
+# LINKS
+# =========================================================
 
 def extract_links(text):
 
@@ -346,9 +395,9 @@ def classify_links(links):
     return result
 
 
-# =========================
+# =========================================================
 # DEADLINE DETECTION
-# =========================
+# =========================================================
 
 def detect_deadline(text):
 
@@ -396,17 +445,20 @@ def detect_deadline(text):
     return list(dict.fromkeys(matches))
 
 
-# =========================
+# =========================================================
 # PRIORITY
-# =========================
+# =========================================================
 
 def determine_priority(topics, actions):
 
-    if (
-        "DEPOSIT" in actions
-        or "WITHDRAW" in actions
-        or "BUY" in actions
-        or "SELL" in actions
+    if any(
+        action in actions
+        for action in [
+            "DEPOSIT",
+            "WITHDRAW",
+            "BUY",
+            "SELL",
+        ]
     ):
         return "🔴 HIGH"
 
@@ -428,9 +480,9 @@ def determine_priority(topics, actions):
     return "🟢 LOW"
 
 
-# =========================
+# =========================================================
 # RISK
-# =========================
+# =========================================================
 
 def determine_risk(actions):
 
@@ -455,9 +507,9 @@ def determine_risk(actions):
     return "🟢 LOW"
 
 
-# =========================
+# =========================================================
 # PRIMARY ACTION
-# =========================
+# =========================================================
 
 def determine_action(actions):
 
@@ -492,9 +544,97 @@ def determine_action(actions):
     return actions[0]
 
 
-# =========================
+# =========================================================
+# CONFIDENCE SCORE
+# =========================================================
+
+def calculate_confidence(
+    text,
+    topics,
+    actions,
+    deadlines,
+    event_detected,
+    links
+):
+
+    score = 50
+
+    # Topic detected
+    if topics:
+        score += 10
+
+    # Action detected
+    if actions:
+        score += 15
+
+    # Multiple actions
+    if len(actions) >= 2:
+        score += 5
+
+    # Deadline detected
+    if deadlines:
+        score += 10
+
+    # Event detected
+    if event_detected:
+        score += 5
+
+    # Link exists
+    if links:
+        score += 5
+
+    # Avoid false positives from standalone names
+    if "Minted_Mind" in text or "minted_mind" in text:
+        if "MINT" not in topics:
+            score += 5
+
+    return min(score, 100)
+
+
+# =========================================================
+# EXPLANATION
+# =========================================================
+
+def build_reason(
+    topics,
+    actions,
+    deadlines,
+    event_detected
+):
+
+    reasons = []
+
+    if topics:
+        reasons.append(
+            "موضوع اصلی پیام شناسایی شد."
+        )
+
+    if actions:
+        reasons.append(
+            "یک یا چند اقدام عملی در پیام شناسایی شد."
+        )
+
+    if deadlines:
+        reasons.append(
+            "زمان یا Deadline در پیام وجود دارد."
+        )
+
+    if event_detected:
+        reasons.append(
+            "پیام شامل یک رویداد قابل پیگیری است."
+        )
+
+    if not reasons:
+        reasons.append(
+            "اقدام مشخصی از متن پیام شناسایی نشد."
+        )
+
+    return " ".join(reasons)
+
+
+# =========================================================
 # STEPS
-# =========================
+# =========================================================
 
 def build_steps(action):
 
@@ -567,7 +707,8 @@ def build_steps(action):
         "JOIN": [
             "1. لینک رسمی فعالیت را بررسی کن.",
             "2. شرایط شرکت را بخوان.",
-            "3. مراحل لازم را انجام بده.",
+            "3. زمان شروع و نحوه ورود را بررسی کن.",
+            "4. در صورت معتبر بودن، در فعالیت شرکت کن.",
         ],
 
         "REGISTER": [
@@ -597,9 +738,9 @@ def build_steps(action):
     )
 
 
-# =========================
+# =========================================================
 # MAIN ANALYZER
-# =========================
+# =========================================================
 
 def analyze_message(text, link):
 
@@ -609,13 +750,28 @@ def analyze_message(text, link):
 
     actions = detect_actions(text)
 
-    action = determine_action(actions)
+    deadlines = detect_deadline(text)
 
     links = extract_links(text)
 
     link_info = classify_links(links)
 
-    deadlines = detect_deadline(text)
+    event_detected = detect_event(
+        text,
+        topics,
+        deadlines
+    )
+
+    # Competition/event with a concrete time
+    # becomes an actionable JOIN event.
+    if (
+        event_detected
+        and "JOIN" not in actions
+        and "COMPETITION" in topics
+    ):
+        actions.append("JOIN")
+
+    action = determine_action(actions)
 
     priority = determine_priority(
         topics,
@@ -623,6 +779,22 @@ def analyze_message(text, link):
     )
 
     risk = determine_risk(actions)
+
+    confidence = calculate_confidence(
+        text,
+        topics,
+        actions,
+        deadlines,
+        event_detected,
+        links
+    )
+
+    reason = build_reason(
+        topics,
+        actions,
+        deadlines,
+        event_detected
+    )
 
     action_required = action is not None
 
@@ -643,26 +815,42 @@ def analyze_message(text, link):
     return {
         "priority": priority,
         "risk": risk,
+
+        "confidence": confidence,
+
         "topics": topics,
+
         "actions": actions,
+
         "action": action,
+
         "action_required": action_required,
+
         "financial_action": financial_action,
-        "links": link_info,
+
+        "event_detected": event_detected,
+
         "deadlines": deadlines,
+
+        "reason": reason,
+
+        "links": link_info,
+
         "steps": (
             build_steps(action)
             if action_required
             else []
         ),
+
         "text": text,
+
         "link": link,
     }
 
 
-# =========================
+# =========================================================
 # TELEGRAM FORMAT
-# =========================
+# =========================================================
 
 def format_alert(result):
 
@@ -670,19 +858,34 @@ def format_alert(result):
         "🤖 NABU INTELLIGENCE ALERT\n\n"
         f"اهمیت: {result['priority']}\n"
         f"⚠️ ریسک: {result['risk']}\n"
+        f"🧠 اعتماد تحلیل: {result['confidence']}%\n"
     )
 
     if result["action_required"]:
 
         message += (
             "\n⚡ اقدام لازم: بله\n"
-            f"🎯 اقدام: {result['action']}\n"
+            f"🎯 اقدام اصلی: {result['action']}\n"
         )
+
+        if len(result["actions"]) > 1:
+
+            message += (
+                "📋 همه اقدامات: "
+                + ", ".join(result["actions"])
+                + "\n"
+            )
 
     else:
 
         message += (
             "\nℹ️ اقدام لازم: خیر\n"
+        )
+
+    if result["event_detected"]:
+
+        message += (
+            "\n📅 رویداد قابل پیگیری: بله\n"
         )
 
     if result["topics"]:
@@ -700,6 +903,12 @@ def format_alert(result):
             + ", ".join(result["deadlines"])
             + "\n"
         )
+
+    message += (
+        "\n🔍 دلیل تحلیل:\n"
+        + result["reason"]
+        + "\n"
+    )
 
     message += (
         "\n📝 پیام:\n"
@@ -729,7 +938,9 @@ def format_alert(result):
 
     if result["links"]:
 
-        message += "\n🔗 لینک‌های شناسایی‌شده:\n"
+        message += (
+            "\n🔗 لینک‌های شناسایی‌شده:\n"
+        )
 
         for item in result["links"][:5]:
 
