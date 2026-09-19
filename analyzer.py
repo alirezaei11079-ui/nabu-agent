@@ -93,7 +93,7 @@ ACTION_KEYWORDS = {
 
 
 # =========================================================
-# SOURCE VERIFICATION
+# SOURCE DATABASE
 # =========================================================
 
 TRUSTED_DOMAINS = {
@@ -106,6 +106,12 @@ TRUSTED_DOMAINS = {
     "discord.gg",
 }
 
+
+TEST_DOMAINS = {
+    "example.com",
+}
+
+
 URL_SHORTENERS = {
     "bit.ly",
     "tinyurl.com",
@@ -117,10 +123,10 @@ URL_SHORTENERS = {
     "rb.gy",
 }
 
+
 SUSPICIOUS_TLDS = {
     ".click",
     ".top",
-    ".xyz",
     ".buzz",
     ".monster",
     ".shop",
@@ -144,6 +150,7 @@ def extract_links(text):
 # =========================================================
 
 def normalize_domain(domain):
+
     domain = domain.lower().strip()
 
     if domain.startswith("www."):
@@ -153,30 +160,58 @@ def normalize_domain(domain):
 
 
 def is_ip_address(domain):
+
     ipv4 = r"^\d{1,3}(\.\d{1,3}){3}$"
-    return bool(re.match(ipv4, domain))
+
+    return bool(
+        re.match(ipv4, domain)
+    )
 
 
 def is_punycode(domain):
+
     return "xn--" in domain.lower()
 
 
 def is_trusted_domain(domain):
+
     domain = normalize_domain(domain)
 
     for trusted in TRUSTED_DOMAINS:
-        if domain == trusted or domain.endswith("." + trusted):
+
+        if (
+            domain == trusted
+            or domain.endswith("." + trusted)
+        ):
+            return True
+
+    return False
+
+
+def is_test_domain(domain):
+
+    domain = normalize_domain(domain)
+
+    for test_domain in TEST_DOMAINS:
+
+        if (
+            domain == test_domain
+            or domain.endswith("." + test_domain)
+        ):
             return True
 
     return False
 
 
 def is_shortener(domain):
+
     domain = normalize_domain(domain)
+
     return domain in URL_SHORTENERS
 
 
 def has_suspicious_tld(domain):
+
     domain = normalize_domain(domain)
 
     return any(
@@ -190,9 +225,12 @@ def has_suspicious_tld(domain):
 # =========================================================
 
 def analyze_source(url, text=""):
+
     parsed = urlparse(url)
 
-    domain = normalize_domain(parsed.netloc)
+    domain = normalize_domain(
+        parsed.netloc
+    )
 
     result = {
         "url": url,
@@ -204,84 +242,120 @@ def analyze_source(url, text=""):
     }
 
     if not domain:
+
+        result["source_type"] = "INVALID"
         result["status"] = "INVALID"
         result["risk"] = "HIGH"
-        result["warnings"].append("Invalid URL")
+
+        result["warnings"].append(
+            "Invalid URL"
+        )
+
         return result
 
     # -----------------------------------------------------
-    # Trusted source
+    # TEST SOURCE
+    # -----------------------------------------------------
+
+    if is_test_domain(domain):
+
+        result["source_type"] = "TEST_SOURCE"
+        result["status"] = "TEST"
+        result["risk"] = "LOW"
+
+        return result
+
+    # -----------------------------------------------------
+    # TRUSTED SOURCE
     # -----------------------------------------------------
 
     if is_trusted_domain(domain):
+
         result["source_type"] = "TRUSTED_PLATFORM"
         result["status"] = "KNOWN"
         result["risk"] = "LOW"
 
+        return result
+
     # -----------------------------------------------------
-    # URL shortener
+    # URL SHORTENER
     # -----------------------------------------------------
 
-    elif is_shortener(domain):
+    if is_shortener(domain):
+
         result["source_type"] = "URL_SHORTENER"
-        result["status"] = "UNKNOWN"
-        result["risk"] = "MEDIUM"
+        result["status"] = "SUSPICIOUS"
+        result["risk"] = "HIGH"
+
         result["warnings"].append(
             "Shortened URL hides the final destination"
         )
 
+        return result
+
     # -----------------------------------------------------
-    # IP address
+    # IP ADDRESS
     # -----------------------------------------------------
 
-    elif is_ip_address(domain):
+    if is_ip_address(domain):
+
         result["source_type"] = "IP_ADDRESS"
         result["status"] = "SUSPICIOUS"
         result["risk"] = "HIGH"
+
         result["warnings"].append(
             "Website uses an IP address instead of a normal domain"
         )
 
+        return result
+
     # -----------------------------------------------------
-    # Punycode
+    # PUNYCODE
     # -----------------------------------------------------
 
-    elif is_punycode(domain):
+    if is_punycode(domain):
+
         result["source_type"] = "PUNYCODE_DOMAIN"
         result["status"] = "SUSPICIOUS"
         result["risk"] = "HIGH"
+
         result["warnings"].append(
             "Punycode domain detected"
         )
 
+        return result
+
     # -----------------------------------------------------
-    # Suspicious TLD
+    # SUSPICIOUS TLD
     # -----------------------------------------------------
 
-    elif has_suspicious_tld(domain):
+    if has_suspicious_tld(domain):
+
         result["source_type"] = "UNKNOWN_DOMAIN"
         result["status"] = "UNKNOWN"
         result["risk"] = "MEDIUM"
+
         result["warnings"].append(
             "Domain uses a potentially suspicious TLD"
         )
 
     # -----------------------------------------------------
-    # Unknown domain
+    # UNKNOWN DOMAIN
     # -----------------------------------------------------
 
     else:
+
         result["source_type"] = "UNKNOWN_DOMAIN"
         result["status"] = "UNKNOWN"
-        result["risk"] = "MEDIUM"
+        result["risk"] = "LOW"
 
         result["warnings"].append(
             "Domain is not in the trusted source list"
         )
 
-    # =====================================================
-    # Context-sensitive scam detection
-    # =====================================================
+    # -----------------------------------------------------
+    # Sensitive crypto context
+    # -----------------------------------------------------
 
     text_lower = text.lower()
 
@@ -291,7 +365,6 @@ def analyze_source(url, text=""):
         "connect wallet",
         "wallet",
         "airdrop",
-        "free",
         "reward",
         "verify",
         "verification",
@@ -304,31 +377,22 @@ def analyze_source(url, text=""):
         for word in sensitive_words
     )
 
-    if sensitive_context and result["status"] == "UNKNOWN":
+    if (
+        sensitive_context
+        and result["status"] == "UNKNOWN"
+    ):
 
-        if result["risk"] == "LOW":
-            result["risk"] = "MEDIUM"
+        result["risk"] = "MEDIUM"
 
-        if (
-            "Sensitive crypto action"
-            not in result["warnings"]
-        ):
-            result["warnings"].append(
-                "Sensitive crypto action detected on an unverified domain"
-            )
-
-    # =====================================================
-    # Final risk escalation
-    # =====================================================
-
-    if result["status"] == "SUSPICIOUS":
-        result["risk"] = "HIGH"
+        result["warnings"].append(
+            "Sensitive crypto action detected on an unverified domain"
+        )
 
     return result
 
 
 # =========================================================
-# ANALYZE ALL SOURCES
+# SOURCE AGGREGATION
 # =========================================================
 
 def analyze_sources(text, links):
@@ -336,6 +400,7 @@ def analyze_sources(text, links):
     sources = []
 
     for link in links:
+
         sources.append(
             analyze_source(
                 link,
@@ -344,6 +409,7 @@ def analyze_sources(text, links):
         )
 
     if not sources:
+
         return {
             "sources": [],
             "overall_status": "NO_LINK",
@@ -359,8 +425,9 @@ def analyze_sources(text, links):
 
     highest_risk = max(
         sources,
-        key=lambda x: risk_levels.get(
-            x["risk"],
+        key=lambda source:
+        risk_levels.get(
+            source["risk"],
             1
         )
     )["risk"]
@@ -368,24 +435,45 @@ def analyze_sources(text, links):
     warnings = []
 
     for source in sources:
+
         warnings.extend(
             source["warnings"]
         )
 
-    if highest_risk == "HIGH":
+    warnings = list(
+        dict.fromkeys(warnings)
+    )
+
+    statuses = [
+        source["status"]
+        for source in sources
+    ]
+
+    if "SUSPICIOUS" in statuses:
+
         overall_status = "SUSPICIOUS"
 
-    elif highest_risk == "MEDIUM":
+    elif "UNKNOWN" in statuses:
+
         overall_status = "UNVERIFIED"
 
-    else:
+    elif "KNOWN" in statuses:
+
         overall_status = "KNOWN"
+
+    elif "TEST" in statuses:
+
+        overall_status = "TEST"
+
+    else:
+
+        overall_status = statuses[0]
 
     return {
         "sources": sources,
         "overall_status": overall_status,
         "overall_risk": highest_risk,
-        "warnings": list(dict.fromkeys(warnings)),
+        "warnings": warnings,
     }
 
 
@@ -405,7 +493,18 @@ def detect_topics(text):
             keyword.lower() in text_lower
             for keyword in keywords
         ):
+
             topics.append(topic)
+
+    # Prevent Minted_Mind from being interpreted as MINT
+    if (
+        "minted_mind" in text_lower
+        or "minted-mind" in text_lower
+    ):
+
+        if "MINT" in topics:
+
+            topics.remove("MINT")
 
     return topics
 
@@ -426,6 +525,7 @@ def detect_actions(text):
             keyword.lower() in text_lower
             for keyword in keywords
         ):
+
             actions.append(action)
 
     # Prevent Minted_Mind from becoming MINT
@@ -433,7 +533,9 @@ def detect_actions(text):
         "minted_mind" in text_lower
         or "minted-mind" in text_lower
     ):
+
         if "MINT" in actions:
+
             actions.remove("MINT")
 
     return actions
@@ -475,7 +577,9 @@ def detect_deadlines(text):
         )
 
         for match in matches:
+
             if match not in results:
+
                 results.append(match)
 
     return results
@@ -485,7 +589,11 @@ def detect_deadlines(text):
 # EVENT DETECTION
 # =========================================================
 
-def detect_event(text, topics, deadlines):
+def detect_event(
+    text,
+    topics,
+    deadlines
+):
 
     text_lower = text.lower()
 
@@ -507,12 +615,15 @@ def detect_event(text, topics, deadlines):
     )
 
     if not has_event:
+
         return False
 
     if deadlines:
+
         return True
 
     if "COMPETITION" in topics:
+
         return True
 
     return False
@@ -533,34 +644,52 @@ def calculate_risk(
 
     text_lower = text.lower()
 
+    # -----------------------------------------------------
+    # Crypto actions
+    # -----------------------------------------------------
+
     if "MINT" in topics:
+
         score += 20
 
     if "CLAIM" in topics:
+
         score += 20
 
     if "CONNECT_WALLET" in actions:
+
         score += 25
 
     if "MINT" in actions:
+
         score += 20
 
     if "CLAIM" in actions:
+
         score += 15
+
+    # -----------------------------------------------------
+    # Source risk
+    # -----------------------------------------------------
 
     for source in sources:
 
         if source["risk"] == "MEDIUM":
-            score += 15
+
+            score += 10
 
         elif source["risk"] == "HIGH":
+
             score += 40
+
+    # -----------------------------------------------------
+    # Explicit scam indicators
+    # -----------------------------------------------------
 
     scam_words = [
         "seed phrase",
         "private key",
         "recovery phrase",
-        "password",
         "send crypto",
         "send us",
         "deposit to claim",
@@ -570,12 +699,36 @@ def calculate_risk(
         word in text_lower
         for word in scam_words
     ):
+
         score += 50
 
+    # -----------------------------------------------------
+    # Competition is normally low risk
+    # -----------------------------------------------------
+
+    if (
+        "COMPETITION" in topics
+        and not any(
+            action in actions
+            for action in [
+                "CONNECT_WALLET",
+                "MINT",
+                "CLAIM",
+            ]
+        )
+    ):
+
+        score = min(
+            score,
+            20
+        )
+
     if score >= 70:
+
         return "HIGH"
 
     if score >= 35:
+
         return "MEDIUM"
 
     return "LOW"
@@ -593,19 +746,35 @@ def calculate_priority(
 ):
 
     if risk == "HIGH":
+
         return "🔴 HIGH"
 
     if (
         source_risk == "HIGH"
-        or "CLAIM" in actions
+        and any(
+            action in actions
+            for action in [
+                "CONNECT_WALLET",
+                "MINT",
+                "CLAIM",
+            ]
+        )
+    ):
+
+        return "🔴 HIGH"
+
+    if (
+        "CLAIM" in actions
         or deadlines
     ):
+
         return "🔴 HIGH"
 
     if (
         actions
         or risk == "MEDIUM"
     ):
+
         return "🟠 MEDIUM"
 
     return "🟢 LOW"
@@ -628,39 +797,49 @@ def calculate_confidence(
     score = 50
 
     if topics:
+
         score += 10
 
     if actions:
+
         score += 15
 
     if len(actions) >= 2:
+
         score += 5
 
     if deadlines:
+
         score += 10
 
     if event_detected:
+
         score += 5
 
     if links:
+
         score += 5
 
     if sources:
 
         known_sources = [
-            s for s in sources
-            if s["status"] == "KNOWN"
+            source
+            for source in sources
+            if source["status"] == "KNOWN"
         ]
 
         suspicious_sources = [
-            s for s in sources
-            if s["risk"] == "HIGH"
+            source
+            for source in sources
+            if source["risk"] == "HIGH"
         ]
 
         if known_sources:
+
             score += 5
 
         if suspicious_sources:
+
             score -= 10
 
     return max(
@@ -689,8 +868,11 @@ def analyze_message(text, link):
 
     links = extract_links(text)
 
-    # Include Telegram post link
-    if link and link not in links:
+    if (
+        link
+        and link not in links
+    ):
+
         links.append(link)
 
     source_analysis = analyze_sources(
@@ -698,7 +880,9 @@ def analyze_message(text, link):
         links
     )
 
-    sources = source_analysis["sources"]
+    sources = source_analysis[
+        "sources"
+    ]
 
     # -----------------------------------------------------
     # Competition automatically means JOIN
@@ -709,6 +893,7 @@ def analyze_message(text, link):
         and "JOIN" not in actions
         and "COMPETITION" in topics
     ):
+
         actions.append("JOIN")
 
     # -----------------------------------------------------
@@ -776,6 +961,7 @@ def analyze_message(text, link):
         )
 
     else:
+
         action = None
 
     # -----------------------------------------------------
@@ -799,48 +985,60 @@ def analyze_message(text, link):
     reasons = []
 
     if topics:
+
         reasons.append(
             "موضوع مرتبط با Web3 شناسایی شد"
         )
 
     if actions:
+
         reasons.append(
             "اقدام قابل انجام شناسایی شد"
         )
 
     if event_detected:
+
         reasons.append(
             "رویداد یا مسابقه شناسایی شد"
         )
 
     if deadlines:
+
         reasons.append(
             "محدودیت زمانی شناسایی شد"
         )
 
-    if source_analysis["overall_status"] == "UNVERIFIED":
+    if source_analysis[
+        "overall_status"
+    ] == "UNVERIFIED":
+
         reasons.append(
             "لینک ناشناخته یا تأییدنشده است"
         )
 
-    if source_analysis["overall_status"] == "SUSPICIOUS":
+    if source_analysis[
+        "overall_status"
+    ] == "SUSPICIOUS":
+
         reasons.append(
             "هشدار امنیتی برای منبع شناسایی شد"
         )
 
     if not reasons:
+
         reasons.append(
             "مورد مهمی برای اقدام شناسایی نشد"
         )
 
-    reason = "؛ ".join(reasons)
+    reason = "؛ ".join(
+        reasons
+    )
 
     # -----------------------------------------------------
     # Final result
     # -----------------------------------------------------
 
     return {
-
         "priority": priority,
 
         "risk": risk,
@@ -908,7 +1106,8 @@ def format_alert(result):
     )
 
     lines.append(
-        f"🎯 اطمینان تحلیل: {result['confidence']}%"
+        f"🎯 اطمینان تحلیل: "
+        f"{result['confidence']}%"
     )
 
     lines.append("")
@@ -921,14 +1120,17 @@ def format_alert(result):
     if result["action"]:
 
         lines.append(
-            f"🎯 اقدام اصلی: {result['action']}"
+            f"🎯 اقدام اصلی: "
+            f"{result['action']}"
         )
 
     if result["actions"]:
 
         lines.append(
             "📋 همه اقدامات: "
-            + ", ".join(result["actions"])
+            + ", ".join(
+                result["actions"]
+            )
         )
 
     if result["event"]:
@@ -941,7 +1143,9 @@ def format_alert(result):
 
         lines.append(
             "⏰ زمان‌ها: "
-            + ", ".join(result["deadlines"])
+            + ", ".join(
+                result["deadlines"]
+            )
         )
 
     lines.append("")
@@ -1012,3 +1216,53 @@ def format_alert(result):
     )
 
     return "\n".join(lines)
+
+
+
+2. حالا همان تست قبلی را اجرا کن
+
+
+برو:
+
+
+GitHub → Actions → Test Analyzer → Run workflow
+
+
+این بار برای NORMAL ANNOUNCEMENT باید دیگر این حالت را نبینی:
+
+
+🔴 HIGH
+
+
+
+و برای مسابقه هم نباید صرفاً به خاطر example.com هشدار جدی بگیری.
+
+
+اما برای چیزی مثل:
+
+
+Connect your wallet and claim your reward
+https://bit.ly/xxxxx
+
+
+
+Agent باید لینک کوتاه‌شده را SUSPICIOUS / HIGH تشخیص بدهد.
+
+
+مرحله بعدی
+
+
+بعد از اینکه این تست سبز شد، می‌رویم سراغ مرحله مهم‌تر V3:
+
+
+Live URL Verification
+
+
+یعنی Agent دیگر فقط به اسم دامنه نگاه نمی‌کند؛ لینک را واقعاً بررسی می‌کند و نتیجه را در Alert می‌آورد:
+
+
+URL → Domain → HTTPS → Redirect → Final Domain → Risk → Scam Warning
+
+
+و این قسمت برای Agent نهایی خیلی مهم‌تر از allowlist ساده خواهد بود.
+
