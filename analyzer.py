@@ -570,6 +570,611 @@ def analyze_sources(text, links):
         "risk": overall_risk,
         "warnings": warnings,
     }
+# =========================================================
+# SCAM & PHISHING INTELLIGENCE
+# =========================================================
+
+KNOWN_BRANDS = {
+    "nabu",
+    "nabulines",
+    "web3nabu",
+    "telegram",
+    "discord",
+    "github",
+    "twitter",
+    "x",
+    "opensea",
+    "metamask",
+    "trustwallet",
+}
+
+
+PHISHING_KEYWORDS = [
+    "seed phrase",
+    "recovery phrase",
+    "private key",
+    "secret phrase",
+    "send crypto",
+    "send us",
+    "deposit to claim",
+    "verify wallet",
+    "verify your wallet",
+    "synchronize wallet",
+    "sync wallet",
+    "restore wallet",
+    "import wallet",
+    "connect wallet",
+    "claim reward",
+    "claim rewards",
+    "free mint",
+    "urgent claim",
+    "limited claim",
+]
+
+
+SUSPICIOUS_DOMAIN_WORDS = [
+    "claim",
+    "mint",
+    "airdrop",
+    "reward",
+    "rewards",
+    "verify",
+    "wallet",
+    "connect",
+    "login",
+    "secure",
+    "support",
+    "official",
+]
+
+
+def get_domain_parts(domain):
+
+    domain = normalize_domain(
+        domain
+    )
+
+    parts = domain.split(".")
+
+    if len(parts) < 2:
+        return {
+            "root": domain,
+            "subdomain": "",
+        }
+
+    root = ".".join(
+        parts[-2:]
+    )
+
+    subdomain = ".".join(
+        parts[:-2]
+    )
+
+    return {
+        "root": root,
+        "subdomain": subdomain,
+    }
+
+
+def detect_brand_impersonation(
+    domain,
+    text
+):
+
+    domain = normalize_domain(
+        domain
+    )
+
+    lower_text = text.lower()
+
+    detected_brands = []
+
+    for brand in KNOWN_BRANDS:
+
+        if brand in domain:
+            detected_brands.append(
+                brand
+            )
+
+    if not detected_brands:
+        return {
+            "detected": False,
+            "brands": [],
+            "reason": None,
+        }
+
+    trusted = is_trusted_domain(
+        domain
+    )
+
+    if trusted:
+        return {
+            "detected": False,
+            "brands": detected_brands,
+            "reason": None,
+        }
+
+    suspicious_context = any(
+        keyword in lower_text
+        for keyword in PHISHING_KEYWORDS
+    )
+
+    suspicious_domain = any(
+        word in domain
+        for word in SUSPICIOUS_DOMAIN_WORDS
+    )
+
+    if suspicious_context or suspicious_domain:
+
+        return {
+            "detected": True,
+            "brands": detected_brands,
+            "reason": (
+                "Possible brand impersonation "
+                "on an untrusted domain"
+            ),
+        }
+
+    return {
+        "detected": False,
+        "brands": detected_brands,
+        "reason": None,
+    }
+
+
+def analyze_phishing(
+    url,
+    text,
+    source
+):
+
+    domain = source.get(
+        "domain",
+        ""
+    )
+
+    lower_text = text.lower()
+
+    result = {
+        "risk": "LOW",
+        "score": 0,
+        "flags": [],
+        "brand_impersonation": False,
+        "brands": [],
+        "wallet_risk": False,
+        "financial_risk": False,
+    }
+
+    # -----------------------------------------------------
+    # Suspicious keywords
+    # -----------------------------------------------------
+
+    matched_keywords = []
+
+    for keyword in PHISHING_KEYWORDS:
+
+        if keyword in lower_text:
+
+            if keyword not in matched_keywords:
+                matched_keywords.append(
+                    keyword
+                )
+
+    if matched_keywords:
+
+        result["score"] += min(
+            len(matched_keywords) * 10,
+            30
+        )
+
+        result["flags"].append(
+            "Suspicious crypto/security language"
+        )
+
+    # -----------------------------------------------------
+    # Wallet risk
+    # -----------------------------------------------------
+
+    wallet_words = [
+        "connect wallet",
+        "wallet connect",
+        "verify wallet",
+        "sync wallet",
+        "restore wallet",
+        "import wallet",
+    ]
+
+    if any(
+        word in lower_text
+        for word in wallet_words
+    ):
+
+        result["wallet_risk"] = True
+
+        result["score"] += 25
+
+        result["flags"].append(
+            "Wallet interaction requested"
+        )
+
+    # -----------------------------------------------------
+    # Private key / seed phrase
+    # -----------------------------------------------------
+
+    secret_words = [
+        "seed phrase",
+        "recovery phrase",
+        "private key",
+        "secret phrase",
+    ]
+
+    if any(
+        word in lower_text
+        for word in secret_words
+    ):
+
+        result["score"] += 60
+
+        result["flags"].append(
+            "Secret wallet credentials requested"
+        )
+
+    # -----------------------------------------------------
+    # Crypto transfer
+    # -----------------------------------------------------
+
+    transfer_words = [
+        "send crypto",
+        "send us",
+        "deposit to claim",
+    ]
+
+    if any(
+        word in lower_text
+        for word in transfer_words
+    ):
+
+        result["financial_risk"] = True
+
+        result["score"] += 50
+
+        result["flags"].append(
+            "Crypto transfer or deposit requested"
+        )
+
+    # -----------------------------------------------------
+    # Brand impersonation
+    # -----------------------------------------------------
+
+    impersonation = detect_brand_impersonation(
+        domain,
+        text
+    )
+
+    if impersonation["detected"]:
+
+        result["brand_impersonation"] = True
+
+        result["brands"] = (
+            impersonation["brands"]
+        )
+
+        result["score"] += 45
+
+        result["flags"].append(
+            impersonation["reason"]
+        )
+
+    # -----------------------------------------------------
+    # Suspicious domain structure
+    # -----------------------------------------------------
+
+    domain_parts = get_domain_parts(
+        domain
+    )
+
+    root_domain = domain_parts[
+        "root"
+    ]
+
+    subdomain = domain_parts[
+        "subdomain"
+    ]
+
+    suspicious_root_words = [
+        "claim",
+        "mint",
+        "airdrop",
+        "reward",
+        "verify",
+        "wallet",
+        "login",
+        "secure",
+        "support",
+    ]
+
+    if any(
+        word in root_domain
+        for word in suspicious_root_words
+    ):
+
+        if not is_trusted_domain(
+            domain
+        ):
+
+            result["score"] += 20
+
+            result["flags"].append(
+                "Suspicious crypto/security word in domain"
+            )
+
+    if subdomain:
+
+        suspicious_subdomain_words = [
+            "claim",
+            "mint",
+            "airdrop",
+            "wallet",
+            "verify",
+            "login",
+            "secure",
+        ]
+
+        if any(
+            word in subdomain
+            for word in suspicious_subdomain_words
+        ):
+
+            if not is_trusted_domain(
+                domain
+            ):
+
+                result["score"] += 15
+
+                result["flags"].append(
+                    "Suspicious subdomain detected"
+                )
+
+    # -----------------------------------------------------
+    # Combine source risk
+    # -----------------------------------------------------
+
+    if source.get("risk") == "HIGH":
+        result["score"] += 25
+
+    elif source.get("risk") == "MEDIUM":
+        result["score"] += 10
+
+    # -----------------------------------------------------
+    # Final phishing risk
+    # -----------------------------------------------------
+
+    if result["score"] >= 70:
+
+        result["risk"] = "HIGH"
+
+    elif result["score"] >= 35:
+
+        result["risk"] = "MEDIUM"
+
+    else:
+
+        result["risk"] = "LOW"
+
+    # Remove duplicate flags
+    result["flags"] = list(
+        dict.fromkeys(
+            result["flags"]
+        )
+    )
+
+    return result
+
+def analyze_sources(text, links):
+
+    sources = []
+
+    for link in links:
+
+        source = analyze_source(
+            link,
+            text
+        )
+
+        # Live verification only for real URLs
+        if source["status"] != "TEST":
+
+            source = live_source_security_check(
+                source
+            )
+
+        # -------------------------------------------------
+        # Scam / Phishing Intelligence
+        # -------------------------------------------------
+
+        phishing = analyze_phishing(
+            link,
+            text,
+            source
+        )
+
+        source["phishing"] = phishing
+
+        # Escalate source risk
+        if phishing["risk"] == "HIGH":
+
+            source["risk"] = "HIGH"
+
+        elif (
+            phishing["risk"] == "MEDIUM"
+            and source["risk"] == "LOW"
+        ):
+
+            source["risk"] = "MEDIUM"
+
+        sources.append(
+            source
+        )
+
+    if not sources:
+
+        return {
+            "sources": [],
+            "status": "NONE",
+            "risk": "LOW",
+            "warnings": [],
+        }
+
+    risks = [
+        source["risk"]
+        for source in sources
+    ]
+
+    warnings = []
+
+    for source in sources:
+
+        for warning in source["warnings"]:
+
+            if warning not in warnings:
+
+                warnings.append(
+                    warning
+                )
+
+        phishing = source.get(
+            "phishing"
+        )
+
+        if phishing:
+
+            for flag in phishing.get(
+                "flags",
+                []
+            ):
+
+                if flag not in warnings:
+
+                    warnings.append(
+                        flag
+                    )
+
+    if "HIGH" in risks:
+
+        overall_risk = "HIGH"
+
+    elif "MEDIUM" in risks:
+
+        overall_risk = "MEDIUM"
+
+    else:
+
+        overall_risk = "LOW"
+
+    statuses = [
+        source["status"]
+        for source in sources
+    ]
+
+    if (
+        "SUSPICIOUS" in statuses
+        or "INVALID" in statuses
+    ):
+
+        overall_status = "SUSPICIOUS"
+
+    elif "UNKNOWN" in statuses:
+
+        overall_status = "UNVERIFIED"
+
+    elif "KNOWN" in statuses:
+
+        overall_status = "KNOWN"
+
+    elif "TEST" in statuses:
+
+        overall_status = "TEST"
+
+    else:
+
+        overall_status = "UNKNOWN"
+
+    return {
+        "sources": sources,
+        "status": overall_status,
+        "risk": overall_risk,
+        "warnings": warnings,
+    }
+
+
+:::writing{variant="document" id="31574" title="Phishing details for format_alert"}
+
+
+        phishing = source.get(
+            "phishing"
+        )
+
+        if phishing:
+
+            lines.append(
+                f"   🛡️ Phishing risk: {phishing['risk']}"
+            )
+
+            lines.append(
+                f"   🧠 Phishing score: {phishing['score']}"
+            )
+
+            if phishing.get(
+                "brand_impersonation"
+            ):
+
+                brands = ", ".join(
+                    phishing.get(
+                        "brands",
+                        []
+                    )
+                )
+
+                lines.append(
+                    f"   🎭 Brand impersonation: YES ({brands})"
+                )
+
+            if phishing.get(
+                "wallet_risk"
+            ):
+
+                lines.append(
+                    "   👛 Wallet risk: YES"
+                )
+
+            if phishing.get(
+                "financial_risk"
+            ):
+
+                lines.append(
+                    "   💸 Financial transfer risk: YES"
+                )
+
+
+
+
+
+
+Nabu official mint!
+Connect your wallet:
+https://nabu-mint-claim.example
+
+
+
+
+
+🛡️ Phishing risk: HIGH
+🧠 Phishing score: ...
+🎭 Brand impersonation: YES
+👛 Wallet risk: YES
+
+
+ 
 
 
 # =========================================================
