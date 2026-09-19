@@ -105,6 +105,107 @@ TEST_MESSAGES = [
         """,
         "link": "https://this-domain-should-not-exist-987654321.com/claim",
     },
+
+    {
+        "name": "SEED PHRASE SCAM",
+        "text": """
+        Your wallet is eligible for a free reward.
+        Connect your wallet and enter your seed phrase
+        to verify ownership and claim your tokens.
+        """,
+        "link": "https://example.net/claim",
+    },
+
+    {
+        "name": "PRIVATE KEY SCAM",
+        "text": """
+        Security verification required.
+        Import your wallet and provide your private key
+        to receive the reward.
+        """,
+        "link": "https://example.net/verify",
+    },
+
+    {
+        "name": "RECOVERY PHRASE SCAM",
+        "text": """
+        Your wallet needs to be synchronized.
+        Restore wallet using your recovery phrase
+        before claiming the airdrop.
+        """,
+        "link": "https://example.net/airdrop",
+    },
+
+    {
+        "name": "CRYPTO TRANSFER SCAM",
+        "text": """
+        Send 0.05 ETH to verify your wallet.
+        After confirmation you will receive the reward.
+        """,
+        "link": "https://example.net/verify",
+    },
+
+    {
+        "name": "DEPOSIT TO CLAIM SCAM",
+        "text": """
+        Deposit 0.1 ETH to claim your free tokens.
+        Limited time offer.
+        """,
+        "link": "https://example.net/claim",
+    },
+
+    {
+        "name": "VERIFY WALLET SCAM",
+        "text": """
+        Urgent!
+        Verify your wallet immediately.
+        Connect wallet to continue and claim your rewards.
+        """,
+        "link": "https://example.net/verify",
+    },
+
+    {
+        "name": "FREE MINT SCAM",
+        "text": """
+        FREE MINT is now live!
+        Connect wallet and mint your NFT.
+        Claim before tonight.
+        """,
+        "link": "https://example.net/free-mint",
+    },
+
+    {
+        "name": "NABU IMPERSONATION",
+        "text": """
+        Official Nabu reward claim.
+        Connect your wallet and claim your Nabu rewards.
+        Verify wallet to continue.
+        """,
+        "link": "https://nabu-claim.example.net/verify",
+    },
+
+    {
+        "name": "METAMASK IMPERSONATION",
+        "text": """
+        MetaMask security verification required.
+        Connect your wallet and verify your recovery phrase.
+        """,
+        "link": "https://metamask-security.example.net/verify",
+    },
+
+    {
+        "name": "MULTI SIGNAL PHISHING",
+        "text": """
+        URGENT WALLET VERIFICATION
+
+        Connect wallet.
+        Verify your wallet.
+        Enter your seed phrase.
+        Send crypto to complete verification.
+        Claim your reward immediately.
+        """,
+        "link": "https://wallet-verify.example.net/claim",
+    },
 ]
 
 
@@ -118,9 +219,7 @@ def print_source_details(result):
     )
 
     if not sources:
-
         print("No sources found.")
-
         return
 
     for source in sources:
@@ -176,6 +275,57 @@ def print_source_details(result):
                     live.get("error")
                 )
 
+        phishing = source.get(
+            "phishing"
+        )
+
+        if phishing:
+
+            print(
+                "Phishing risk:",
+                phishing.get("risk")
+            )
+
+            print(
+                "Phishing score:",
+                phishing.get("score")
+            )
+
+            print(
+                "Brand impersonation:",
+                phishing.get(
+                    "brand_impersonation"
+                )
+            )
+
+            print(
+                "Brands:",
+                phishing.get(
+                    "brands"
+                )
+            )
+
+            print(
+                "Wallet risk:",
+                phishing.get(
+                    "wallet_risk"
+                )
+            )
+
+            print(
+                "Financial risk:",
+                phishing.get(
+                    "financial_risk"
+                )
+            )
+
+            print(
+                "Phishing flags:",
+                phishing.get(
+                    "flags"
+                )
+            )
+
         warnings = source.get(
             "warnings",
             []
@@ -194,8 +344,8 @@ def print_source_details(result):
 def run_tests():
 
     print("=" * 60)
-    print("NABU ANALYZER V3")
-    print("LIVE URL SECURITY TEST")
+    print("NABU ANALYZER V4")
+    print("SCAM / PHISHING SECURITY TEST")
     print("=" * 60)
 
     total = len(
@@ -211,9 +361,11 @@ def run_tests():
 
         print("\n")
         print("=" * 60)
+
         print(
             f"TEST {index}/{total}: {test['name']}"
         )
+
         print("=" * 60)
 
         try:
@@ -306,17 +458,15 @@ def run_tests():
     if passed == total:
 
         print(
-            "✅ ALL TESTS COMPLETED SUCCESSFULLY"
+            "✅ ALL V4 TESTS COMPLETED SUCCESSFULLY"
         )
 
     else:
 
         print(
-            "⚠️ SOME TESTS FAILED"
+            "⚠️ SOME V4 TESTS FAILED"
         )
 
 
 if __name__ == "__main__":
     run_tests()
-
-  
