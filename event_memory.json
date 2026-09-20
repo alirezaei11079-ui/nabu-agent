@@ -1,6 +1,53 @@
 {
-  "events": []
+  "events": [
+    {
+      "event_id": "event-1789922237",
+      "project": "unknown",
+      "category": "OTHER",
+      "event": "رمزگشایی پیام نظامی تاریخی با هوش مصنوعی",
+      "status": "ACTIVE",
+      "first_seen": "2026-09-20T16:37:17.536858+00:00",
+      "last_updated": "2026-09-20T16:37:23.853857+00:00",
+      "deadline": "unknown",
+      "cost": "unknown",
+      "network": "unknown",
+      "contract_address": "unknown",
+      "wallet_required": "UNKNOWN",
+      "financial_action": false,
+      "eligibility": "unknown",
+      "reward": "unknown",
+      "requirements": [],
+      "unknowns": [
+        "جزئیات فنی نحوه استفاده از هوش مصنوعی",
+        "هویت دقیق برنامه‌نویس",
+        "محتوای کامل پیام",
+        "اطلاعات مربوط به پروژه",
+        "وجود پاداش یا ایردراپ",
+        "شرایط شرکت"
+      ],
+      "risk_notes": [
+        "این یک پست خبری و اطلاع‌رسانی است و نیازی به اقدام مالی یا اتصال کیف پول ندارد.",
+        "بررسی لینک خارجی قبل از کلیک کردن برای اطمینان از امنیت."
+      ],
+      "source_links": [
+        "https://t.me/web3nabu/2071",
+        "https://t.me/web3nabu/2072"
+      ],
+      "timeline": [
+        {
+          "timestamp": "2026-09-20T16:37:17.536858+00:00",
+          "type": "FIRST_SEEN",
+          "summary": "یک برنامه‌نویس با استفاده از هوش مصنوعی (GPT-6 Astra) و یک کلمه کلیدی از کتاب تاریخی، موفق شده رمز یک پیام نظامی ۱۰۸ ساله آلمان را بشکند.",
+          "source": "https://t.me/web3nabu/2071"
+        },
+        {
+          "timestamp": "2026-09-20T16:37:23.853857+00:00",
+          "type": "UPDATE",
+          "summary": "کاربر پستی را در خصوص مقایسه آیفون جدید با مدل‌های قبلی که در توییتر ریتوییت کرده بود، به اشتراک گذاشته است.",
+          "source": "https://t.me/web3nabu/2072",
+          "changed_fields": []
+        }
+      ]
+    }
+  ]
 }
-
-
-
