@@ -2,12 +2,93 @@ import os
 import json
 import requests
 import xml.etree.ElementTree as ET
+from html import unescape
 from email.utils import parsedate_to_datetime
+
+from analyzer import analyze_message, format_alert
+
+from action_intelligence import (
+    build_action_intelligence,
+    format_action_intelligence,
+)
 
 
 FEED_URL = "https://fxtwitter.com/nabulines/feed.xml"
 
 STATE_FILE = "x_state.json"
+
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+
+
+def clean_html(text):
+
+    if not text:
+        return ""
+
+    text = unescape(text)
+
+    replacements = {
+        "<br>": "\n",
+        "<br/>": "\n",
+        "<br />": "\n",
+        "</p>": "\n",
+        "<p>": "",
+    }
+
+    for old, new in replacements.items():
+
+        text = text.replace(
+            old,
+            new
+        )
+
+    import re
+
+    text = re.sub(
+        r"<[^>]+>",
+        "",
+        text
+    )
+
+    lines = [
+        line.strip()
+        for line in text.splitlines()
+    ]
+
+    lines = [
+        line
+        for line in lines
+        if line
+    ]
+
+    return "\n".join(lines)
+
+
+def send_telegram(message):
+
+    if not BOT_TOKEN or not CHAT_ID:
+
+        raise RuntimeError(
+            "Telegram credentials are missing."
+        )
+
+    url = (
+        f"https://api.telegram.org/"
+        f"bot{BOT_TOKEN}/sendMessage"
+    )
+
+    response = requests.post(
+        url,
+        json={
+            "chat_id": CHAT_ID,
+            "text": message,
+            "disable_web_page_preview": False,
+        },
+        timeout=30,
+    )
+
+    response.raise_for_status()
 
 
 def get_posts():
@@ -17,7 +98,7 @@ def get_posts():
         headers={
             "User-Agent": "Nabu-Agent/1.0"
         },
-        timeout=30
+        timeout=30,
     )
 
     response.raise_for_status()
@@ -28,7 +109,9 @@ def get_posts():
 
     posts = []
 
-    for item in root.findall(".//item"):
+    for item in root.findall(
+        ".//item"
+    ):
 
         title = item.findtext(
             "title",
@@ -58,13 +141,20 @@ def get_posts():
         post_id = guid or link
 
         if not post_id:
+
             continue
+
+        text = clean_html(
+            description
+        )
 
         posts.append(
             {
                 "id": post_id,
-                "text": description,
-                "title": title,
+                "text": text,
+                "title": clean_html(
+                    title
+                ),
                 "link": link,
                 "pub_date": pub_date,
             }
@@ -116,7 +206,7 @@ def save_state(post_id):
             },
             file,
             ensure_ascii=False,
-            indent=2
+            indent=2,
         )
 
 
@@ -137,6 +227,55 @@ def sort_posts(posts):
     return sorted(
         posts,
         key=sort_key
+    )
+
+
+def process_post(post):
+
+    print(
+        f"Analyzing X post: {post['id']}"
+    )
+
+    text = post["text"]
+
+    if not text:
+
+        text = post["title"]
+
+    analysis = analyze_message(
+        text,
+        post["link"]
+    )
+
+    message = format_alert(
+        analysis
+    )
+
+    intelligence = build_action_intelligence(
+        analysis
+    )
+
+    intelligence_message = (
+        format_action_intelligence(
+            intelligence
+        )
+    )
+
+    x_header = (
+        "𝕏 X / @nabulines\n\n"
+    )
+
+    send_telegram(
+        x_header + message
+    )
+
+    send_telegram(
+        x_header + intelligence_message
+    )
+
+    print(
+        f"X post {post['id']} "
+        "analyzed and sent to Telegram."
     )
 
 
@@ -171,36 +310,22 @@ def main():
         ""
     )
 
-    latest_post = posts[-1]
-
     print(
-        f"Latest post: {latest_post['id']}"
+        f"Previous post: {last_post_id}"
     )
 
     print(
-        f"Previous post: {last_post_id}"
+        f"Latest post: {posts[-1]['id']}"
     )
 
     if not last_post_id:
 
         save_state(
-            latest_post["id"]
+            posts[-1]["id"]
         )
 
         print(
             "Initial X state saved."
-        )
-
-        print(
-            "\nLatest X post:"
-        )
-
-        print(
-            latest_post["text"]
-        )
-
-        print(
-            latest_post["link"]
         )
 
         return
@@ -240,52 +365,46 @@ def main():
         return
 
     print(
-        f"New X posts found: {len(new_posts)}"
+        f"New X posts found: "
+        f"{len(new_posts)}"
+    )
+
+    latest_processed_id = (
+        last_post_id
     )
 
     for post in new_posts:
 
-        print(
-            "\n===================="
-        )
+        try:
 
-        print(
-            "NEW X POST"
-        )
+            process_post(
+                post
+            )
 
-        print(
-            "===================="
-        )
+            latest_processed_id = (
+                post["id"]
+            )
 
-        print(
-            f"ID: {post['id']}"
-        )
+        except Exception as error:
 
-        print(
-            f"Date: {post['pub_date']}"
-        )
+            print(
+                f"X post {post['id']} "
+                f"failed: {error}"
+            )
 
-        print(
-            f"Link: {post['link']}"
-        )
-
-        print(
-            "Text:"
-        )
-
-        print(
-            post["text"]
-        )
+            raise
 
     save_state(
-        new_posts[-1]["id"]
+        latest_processed_id
     )
 
     print(
-        "\nX monitor state updated."
+        "X monitor state updated."
     )
 
 
 if __name__ == "__main__":
 
     main()
+
+
