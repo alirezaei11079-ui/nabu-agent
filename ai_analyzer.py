@@ -1,12 +1,9 @@
 import os
 import json
-import requests
 
+from google import genai
+from google.genai import types
 
-API_URL = (
-    "https://generativelanguage.googleapis.com/"
-    "v1beta/models/gemini-2.5-flash-lite:generateContent"
-)
 
 MODEL_NAME = "gemini-2.5-flash-lite"
 
@@ -20,65 +17,49 @@ def analyze_with_ai(text, source_url=""):
             "GEMINI_API_KEY is not configured."
         )
 
+    client = genai.Client(
+        api_key=api_key
+    )
+
     prompt = f"""
-You are the intelligence analyst of a Web3 monitoring agent.
+تو تحلیلگر هوشمند یک Web3 Monitoring Agent هستی.
 
-Analyze the following social media post carefully.
+پست زیر را با دقت بسیار زیاد تحلیل کن.
 
-Your job is NOT to guess.
-Only report information that is directly supported by the post.
+مهم‌ترین قانون:
+هرگز اطلاعاتی را که در متن وجود ندارد حدس نزن.
 
-If information is missing, use an empty string, false, empty array,
-or "unknown".
+اگر اطلاعاتی در پست وجود ندارد:
+- رشته خالی ""
+- false
+- آرایه خالی []
+- یا "unknown"
+استفاده کن.
 
-Never invent:
-- prices
-- deadlines
-- contract addresses
-- blockchain networks
-- project names
-- eligibility
-- rewards
-- wallet requirements
+هرگز این موارد را اختراع نکن:
+- قیمت
+- مهلت
+- شبکه
+- Contract Address
+- نام پروژه
+- مقدار پاداش
+- شرایط احراز صلاحیت
+- نیاز به Wallet
+- هزینه Mint
+- لینک
 
-Determine what the post actually means and what a user would need
-to do if they wanted to participate.
+پست:
 
-POST:
 {text}
 
-SOURCE:
+منبع:
+
 {source_url}
 
-Return ONLY valid JSON with exactly this structure:
+تحلیل باید فارسی باشد.
 
-{{
-  "summary": "",
-  "meaning": "",
-  "category": "",
-  "project": "",
-  "event": "",
-  "action_required": false,
-  "actions": [],
-  "urgency": "LOW",
-  "deadline": "",
-  "cost": "",
-  "network": "",
-  "contract_address": "",
-  "wallet_required": false,
-  "financial_action": false,
-  "eligibility": "",
-  "reward": "",
-  "links": [],
-  "requirements": [],
-  "unknowns": [],
-  "risk_notes": [],
-  "user_steps": []
-}}
+category فقط یکی از این موارد باشد:
 
-Rules:
-
-category must be one of:
 ANNOUNCEMENT
 GIVEAWAY
 WL
@@ -93,89 +74,190 @@ NFT
 UPDATE
 OTHER
 
-urgency must be one of:
+urgency فقط یکی از این موارد باشد:
+
 LOW
 MEDIUM
 HIGH
 CRITICAL
 
 summary:
-Give a short Persian summary of the post.
+خلاصه کوتاه و دقیق فارسی.
 
 meaning:
-Explain in Persian what the author is actually saying.
+توضیح بده نویسنده دقیقاً چه چیزی می‌گوید.
 
 actions:
-List only actions explicitly required or clearly implied by the post.
+فقط اقداماتی را بنویس که در متن صراحتاً درخواست شده یا به‌وضوح از متن قابل برداشت است.
 
 requirements:
-List requirements mentioned in the post.
+شرایط شرکت یا استفاده که در متن آمده.
 
 unknowns:
-List important information that is missing but would matter before taking action.
+اطلاعات مهمی که برای تصمیم‌گیری لازم هستند ولی در متن وجود ندارند.
 
 risk_notes:
-List potential risks or things that require verification.
-Do not claim something is a scam unless the text itself provides strong evidence.
+مواردی که قبل از اقدام باید بررسی شوند.
 
 user_steps:
-Give practical Persian steps based ONLY on the information available.
+مراحل عملی بر اساس اطلاعات موجود.
+اگر اطلاعات کافی نیست، مرحله‌ای را حدس نزن.
 
-The output must be valid JSON.
+خروجی فقط JSON معتبر باشد.
 """
 
 
-    response = requests.post(
-        f"{API_URL}?key={api_key}",
-        headers={
-            "Content-Type": "application/json"
-        },
-        json={
-            "contents": [
-                {
-                    "parts": [
-                        {
-                            "text": prompt
-                        }
-                    ]
+    response_schema = {
+        "type": "OBJECT",
+        "properties": {
+            "summary": {
+                "type": "STRING"
+            },
+            "meaning": {
+                "type": "STRING"
+            },
+            "category": {
+                "type": "STRING"
+            },
+            "project": {
+                "type": "STRING"
+            },
+            "event": {
+                "type": "STRING"
+            },
+            "action_required": {
+                "type": "BOOLEAN"
+            },
+            "actions": {
+                "type": "ARRAY",
+                "items": {
+                    "type": "STRING"
                 }
-            ],
-            "generationConfig": {
-                "temperature": 0.1,
-                "responseMimeType": "application/json"
+            },
+            "urgency": {
+                "type": "STRING"
+            },
+            "deadline": {
+                "type": "STRING"
+            },
+            "cost": {
+                "type": "STRING"
+            },
+            "network": {
+                "type": "STRING"
+            },
+            "contract_address": {
+                "type": "STRING"
+            },
+            "wallet_required": {
+                "type": "BOOLEAN"
+            },
+            "financial_action": {
+                "type": "BOOLEAN"
+            },
+            "eligibility": {
+                "type": "STRING"
+            },
+            "reward": {
+                "type": "STRING"
+            },
+            "links": {
+                "type": "ARRAY",
+                "items": {
+                    "type": "STRING"
+                }
+            },
+            "requirements": {
+                "type": "ARRAY",
+                "items": {
+                    "type": "STRING"
+                }
+            },
+            "unknowns": {
+                "type": "ARRAY",
+                "items": {
+                    "type": "STRING"
+                }
+            },
+            "risk_notes": {
+                "type": "ARRAY",
+                "items": {
+                    "type": "STRING"
+                }
+            },
+            "user_steps": {
+                "type": "ARRAY",
+                "items": {
+                    "type": "STRING"
+                }
             }
         },
-        timeout=60
-    )
+        "required": [
+            "summary",
+            "meaning",
+            "category",
+            "project",
+            "event",
+            "action_required",
+            "actions",
+            "urgency",
+            "deadline",
+            "cost",
+            "network",
+            "contract_address",
+            "wallet_required",
+            "financial_action",
+            "eligibility",
+            "reward",
+            "links",
+            "requirements",
+            "unknowns",
+            "risk_notes",
+            "user_steps"
+        ]
+    }
 
-    response.raise_for_status()
-
-    data = response.json()
 
     try:
 
-        text_response = (
-            data["candidates"][0]
-            ["content"]["parts"][0]["text"]
+        response = client.models.generate_content(
+            model=MODEL_NAME,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=0.1,
+                response_mime_type="application/json",
+                response_schema=response_schema,
+            ),
         )
 
-    except (KeyError, IndexError):
+    except Exception as error:
 
         raise RuntimeError(
-            f"Unexpected Gemini response: {data}"
+            f"Gemini API error: {error}"
         )
+
+
+    if not response.text:
+
+        raise RuntimeError(
+            "Gemini returned an empty response."
+        )
+
 
     try:
 
-        return json.loads(
-            text_response
+        result = json.loads(
+            response.text
         )
 
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as error:
 
         raise RuntimeError(
-            "Gemini returned invalid JSON."
+            f"Gemini returned invalid JSON: {error}"
         )
+
+
+    return result
 
 
 def format_ai_analysis(result):
@@ -201,6 +283,7 @@ def format_ai_analysis(result):
         ),
     ]
 
+
     if result.get("actions"):
 
         lines.extend([
@@ -213,6 +296,7 @@ def format_ai_analysis(result):
             lines.append(
                 f"• {action}"
             )
+
 
     if result.get("requirements"):
 
@@ -227,12 +311,13 @@ def format_ai_analysis(result):
                 f"• {item}"
             )
 
+
     if result.get("deadline"):
 
-        lines.extend([
-            "",
+        lines.append(
             f"⏰ مهلت: {result['deadline']}"
-        ])
+        )
+
 
     if result.get("cost"):
 
@@ -240,11 +325,13 @@ def format_ai_analysis(result):
             f"💰 هزینه: {result['cost']}"
         )
 
+
     if result.get("network"):
 
         lines.append(
             f"🌐 شبکه: {result['network']}"
         )
+
 
     if result.get("contract_address"):
 
@@ -252,10 +339,24 @@ def format_ai_analysis(result):
             f"📜 قرارداد: {result['contract_address']}"
         )
 
-    lines.append(
-        f"👛 نیاز به کیف پول: "
-        f"{'بله' if result.get('wallet_required') else 'خیر/نامشخص'}"
+
+    wallet_status = (
+        "بله"
+        if result.get("wallet_required")
+        else "خیر/نامشخص"
     )
+
+    lines.append(
+        f"👛 نیاز به کیف پول: {wallet_status}"
+    )
+
+
+    if result.get("financial_action"):
+
+        lines.append(
+            "💸 اقدام مالی: بله"
+        )
+
 
     if result.get("reward"):
 
@@ -263,12 +364,13 @@ def format_ai_analysis(result):
             f"🎁 پاداش: {result['reward']}"
         )
 
+
     if result.get("eligibility"):
 
         lines.append(
-            f"👤 واجد شرایط بودن: "
-            f"{result['eligibility']}"
+            f"👤 شرایط شرکت: {result['eligibility']}"
         )
+
 
     if result.get("unknowns"):
 
@@ -283,6 +385,7 @@ def format_ai_analysis(result):
                 f"• {item}"
             )
 
+
     if result.get("risk_notes"):
 
         lines.extend([
@@ -295,6 +398,7 @@ def format_ai_analysis(result):
             lines.append(
                 f"• {item}"
             )
+
 
     if result.get("user_steps"):
 
@@ -312,8 +416,7 @@ def format_ai_analysis(result):
                 f"{index}. {step}"
             )
 
+
     return "\n".join(
         lines
     )
-
-
