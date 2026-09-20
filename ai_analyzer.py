@@ -50,7 +50,7 @@ RESPONSE_SCHEMA = {
             "type": "string"
         },
         "wallet_required": {
-            "type": "boolean"
+            "type": "string"
         },
         "financial_action": {
             "type": "boolean"
@@ -125,37 +125,36 @@ def analyze_with_ai(text, source_url=""):
     )
 
     if not api_key:
-
         raise RuntimeError(
             "GEMINI_API_KEY is not configured."
         )
-
 
     client = genai.Client(
         api_key=api_key
     )
 
-
     prompt = f"""
 تو تحلیلگر هوشمند یک Web3 Intelligence Agent هستی.
 
-پست زیر را با دقت بسیار زیاد تحلیل کن.
+پست زیر را دقیق و Evidence-Based تحلیل کن.
 
-هدف تو این است که به کاربر توضیح بدهی:
-1. این پست دقیقاً چه می‌گوید؟
-2. موضوع چیست؟
-3. آیا کاربر باید کاری انجام دهد؟
-4. اگر باید کاری انجام دهد، دقیقاً چه کاری؟
-5. چه اطلاعات مهمی هنوز مشخص نیست؟
-6. قبل از اقدام چه چیزهایی باید بررسی شوند؟
+قانون اصلی:
 
-قانون بسیار مهم:
+هر چیزی که گزارش می‌کنی باید یکی از این سه حالت را داشته باشد:
 
-هرگز چیزی را که در متن وجود ندارد حدس نزن.
+1. EXPLICIT
+اطلاعات مستقیماً در متن آمده است.
 
-اگر اطلاعاتی در پست وجود ندارد، آن را unknown در نظر بگیر.
+2. IMPLIED
+اطلاعات از متن به‌صورت منطقی قابل برداشت است.
 
-هرگز این موارد را اختراع نکن:
+3. UNKNOWN
+اطلاعات در متن وجود ندارد و نباید حدس زده شود.
+
+اگر مطمئن نیستی، UNKNOWN انتخاب کن.
+
+هرگز اطلاعات زیر را اختراع نکن:
+
 - قیمت
 - هزینه
 - Deadline
@@ -163,24 +162,81 @@ def analyze_with_ai(text, source_url=""):
 - Contract Address
 - نام پروژه
 - مقدار پاداش
-- شرایط احراز صلاحیت
+- شرایط شرکت
 - نیاز به Wallet
-- لینک
 - امنیت قرارداد
+- اعتبار پروژه
+- لینک رسمی
 
-اگر متن فقط یک اطلاعیه است، آن را به عنوان اقدام فوری معرفی نکن.
+تفاوت بسیار مهم:
 
-اگر متن درخواست Follow، Like، Repost، Comment یا ارسال آدرس EVM دارد،
-فقط همان اقدامات را گزارش کن.
+داشتن یا ارسال EVM Address
+به معنی اتصال Wallet نیست.
 
-اگر متن درخواست اتصال Wallet، Mint، Claim یا پرداخت دارد،
-آن را به‌عنوان اقدام حساس مشخص کن.
+اگر متن فقط درخواست EVM Address دارد:
 
-اگر متن درخواست Seed Phrase، Recovery Phrase یا Private Key دارد،
-ریسک بسیار بالا را گزارش کن.
+wallet_required = "UNKNOWN"
 
-اگر اطلاعات کافی برای تصمیم‌گیری وجود ندارد،
-صراحتاً بگو چه اطلاعاتی کم است.
+اگر صراحتاً نوشته:
+Connect Wallet
+یا
+Connect your wallet
+
+آنگاه:
+
+wallet_required = "YES"
+
+اگر صراحتاً گفته باشد Wallet لازم نیست:
+
+wallet_required = "NO"
+
+
+financial_action فقط زمانی true باشد که متن صراحتاً
+پرداخت، خرید، ارسال ارز، Deposit، Mint پولی یا اقدام مالی
+را درخواست کرده باشد.
+
+
+در مورد امنیت:
+
+اگر پست فقط یک Giveaway ساده است،
+آن را Scam اعلام نکن.
+
+اگر اطلاعات امنیتی کافی نیست،
+بنویس که نیاز به بررسی دارد.
+
+
+درباره Eligibility:
+
+اگر شرایط دقیق در متن نیست،
+ننویس "عمومی".
+
+بنویس:
+"unknown"
+
+
+درباره Deadline:
+
+اگر تاریخ یا زمان مشخص نشده،
+"unknown"
+
+
+درباره Cost:
+
+اگر قیمت یا هزینه مشخص نشده،
+"unknown"
+
+
+درباره Network:
+
+اگر شبکه مشخص نشده،
+"unknown"
+
+
+درباره Contract:
+
+اگر Contract Address وجود ندارد،
+"unknown"
+
 
 پست:
 
@@ -191,7 +247,7 @@ def analyze_with_ai(text, source_url=""):
 {source_url}
 
 
-دسته‌بندی category فقط یکی از این موارد باشد:
+category فقط یکی از این موارد:
 
 ANNOUNCEMENT
 GIVEAWAY
@@ -208,7 +264,7 @@ UPDATE
 OTHER
 
 
-urgency فقط یکی از این موارد باشد:
+urgency:
 
 LOW
 MEDIUM
@@ -218,23 +274,31 @@ CRITICAL
 
 تمام توضیحات باید فارسی باشند.
 
+
 summary:
-خلاصه کوتاه و دقیق.
+خلاصه دقیق و کوتاه.
+
 
 meaning:
-منظور واقعی نویسنده را توضیح بده.
+منظور واقعی پست را توضیح بده.
+
 
 actions:
-فقط اقداماتی که در متن درخواست شده یا به‌وضوح از متن قابل برداشت است.
+فقط اقداماتی که در متن درخواست شده یا
+به‌صورت کاملاً واضح قابل برداشت هستند.
+
 
 requirements:
-شرایط شرکت یا استفاده که در متن آمده.
+شرایطی که صراحتاً در متن آمده.
+
 
 unknowns:
-اطلاعات مهمی که وجود ندارد.
+اطلاعات مهمی که در متن وجود ندارد.
+
 
 risk_notes:
 مواردی که قبل از اقدام باید بررسی شوند.
+
 
 user_steps:
 مراحل عملی فقط بر اساس اطلاعات موجود.
@@ -247,11 +311,8 @@ user_steps:
     try:
 
         interaction = client.interactions.create(
-
             model=MODEL_NAME,
-
             input=prompt,
-
             response_format={
                 "type": "text",
                 "mime_type": "application/json",
@@ -271,7 +332,6 @@ user_steps:
         "output_text",
         None
     )
-
 
     if not output:
 
@@ -297,7 +357,7 @@ def format_ai_analysis(result):
 
     lines = [
 
-        "🤖 AI INTELLIGENCE",
+        "🤖 NABU AI INTELLIGENCE",
         "",
 
         f"📌 موضوع: "
@@ -313,8 +373,9 @@ def format_ai_analysis(result):
         f"{result.get('urgency', 'LOW')}",
 
         "",
-
-        "📝 خلاصه",
+        "━━━━━━━━━━━━",
+        "📝 چی شده؟",
+        "━━━━━━━━━━━━",
 
         result.get(
             "summary",
@@ -322,8 +383,9 @@ def format_ai_analysis(result):
         ),
 
         "",
-
+        "━━━━━━━━━━━━",
         "🔎 منظور پست",
+        "━━━━━━━━━━━━",
 
         result.get(
             "meaning",
@@ -336,13 +398,18 @@ def format_ai_analysis(result):
 
         lines.extend([
             "",
-            "🎯 اقدامات"
+            "━━━━━━━━━━━━",
+            "🎯 برای شرکت/اقدام",
+            "━━━━━━━━━━━━"
         ])
 
-        for action in result["actions"]:
+        for index, action in enumerate(
+            result["actions"],
+            start=1
+        ):
 
             lines.append(
-                f"• {action}"
+                f"{index}️⃣ {action}"
             )
 
 
@@ -360,79 +427,41 @@ def format_ai_analysis(result):
             )
 
 
-    if result.get("deadline"):
+    lines.extend([
+        "",
+        f"⏰ مهلت: "
+        f"{result.get('deadline') or 'نامشخص'}",
 
-        lines.append(
-            f"⏰ مهلت: "
-            f"{result['deadline']}"
-        )
+        f"💰 هزینه: "
+        f"{result.get('cost') or 'نامشخص'}",
 
+        f"🌐 شبکه: "
+        f"{result.get('network') or 'نامشخص'}",
 
-    if result.get("cost"):
+        f"📜 قرارداد: "
+        f"{result.get('contract_address') or 'نامشخص'}",
 
-        lines.append(
-            f"💰 هزینه: "
-            f"{result['cost']}"
-        )
+        f"👛 اتصال کیف پول: "
+        f"{result.get('wallet_required') or 'نامشخص'}",
 
+        f"💸 اقدام مالی: "
+        f"{'بله' if result.get('financial_action') else 'خیر/نامشخص'}",
 
-    if result.get("network"):
+        f"🎁 پاداش: "
+        f"{result.get('reward') or 'نامشخص'}",
 
-        lines.append(
-            f"🌐 شبکه: "
-            f"{result['network']}"
-        )
-
-
-    if result.get("contract_address"):
-
-        lines.append(
-            f"📜 قرارداد: "
-            f"{result['contract_address']}"
-        )
-
-
-    if result.get("wallet_required"):
-
-        lines.append(
-            "👛 نیاز به کیف پول: بله"
-        )
-
-    else:
-
-        lines.append(
-            "👛 نیاز به کیف پول: خیر/نامشخص"
-        )
-
-
-    if result.get("financial_action"):
-
-        lines.append(
-            "💸 اقدام مالی: بله"
-        )
-
-
-    if result.get("reward"):
-
-        lines.append(
-            f"🎁 پاداش: "
-            f"{result['reward']}"
-        )
-
-
-    if result.get("eligibility"):
-
-        lines.append(
-            f"👤 شرایط شرکت: "
-            f"{result['eligibility']}"
-        )
+        f"👤 شرایط شرکت: "
+        f"{result.get('eligibility') or 'نامشخص'}"
+    ])
 
 
     if result.get("unknowns"):
 
         lines.extend([
             "",
-            "❓ اطلاعات نامشخص"
+            "━━━━━━━━━━━━",
+            "❓ چه چیزهایی مشخص نیست؟",
+            "━━━━━━━━━━━━"
         ])
 
         for item in result["unknowns"]:
@@ -446,7 +475,9 @@ def format_ai_analysis(result):
 
         lines.extend([
             "",
-            "⚠️ موارد قابل بررسی"
+            "━━━━━━━━━━━━",
+            "⚠️ موارد قابل بررسی",
+            "━━━━━━━━━━━━"
         ])
 
         for item in result["risk_notes"]:
@@ -460,7 +491,9 @@ def format_ai_analysis(result):
 
         lines.extend([
             "",
-            "📱 مراحل پیشنهادی"
+            "━━━━━━━━━━━━",
+            "📱 مراحل پیشنهادی",
+            "━━━━━━━━━━━━"
         ])
 
         for index, step in enumerate(
@@ -471,6 +504,35 @@ def format_ai_analysis(result):
             lines.append(
                 f"{index}. {step}"
             )
+
+
+    lines.extend([
+        "",
+        "━━━━━━━━━━━━",
+        "🧠 نتیجه",
+        "━━━━━━━━━━━━"
+    ])
+
+
+    if result.get("financial_action"):
+
+        lines.append(
+            "⚠️ قبل از هر اقدام مالی، "
+            "اطلاعات پروژه و مقصد را مستقل بررسی کن."
+        )
+
+    elif result.get("action_required"):
+
+        lines.append(
+            "اقدام غیرمالی از متن شناسایی شده؛ "
+            "قبل از انجام مراحل حساس، اطلاعات نامشخص را بررسی کن."
+        )
+
+    else:
+
+        lines.append(
+            "اقدام فوری از متن شناسایی نشد."
+        )
 
 
     return "\n".join(
