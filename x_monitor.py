@@ -2,10 +2,14 @@ import os
 import json
 import requests
 import xml.etree.ElementTree as ET
+
 from html import unescape
 from email.utils import parsedate_to_datetime
 
-from analyzer import analyze_message, format_alert
+from analyzer import (
+    analyze_message,
+    format_alert,
+)
 
 from action_intelligence import (
     build_action_intelligence,
@@ -17,21 +21,37 @@ from ai_analyzer import (
     format_ai_analysis,
 )
 
+from memory_engine import (
+    process_ai_event,
+    format_memory_update,
+)
 
-FEED_URL = "https://fxtwitter.com/nabulines/feed.xml"
+
+FEED_URL = (
+    "https://fxtwitter.com/"
+    "nabulines/feed.xml"
+)
 
 STATE_FILE = "x_state.json"
 
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+BOT_TOKEN = os.getenv(
+    "TELEGRAM_BOT_TOKEN"
+)
+
+CHAT_ID = os.getenv(
+    "TELEGRAM_CHAT_ID"
+)
 
 
 def clean_html(text):
 
     if not text:
+
         return ""
 
-    text = unescape(text)
+    text = unescape(
+        text
+    )
 
     replacements = {
         "<br>": "\n",
@@ -67,7 +87,9 @@ def clean_html(text):
         if line
     ]
 
-    return "\n".join(lines)
+    return "\n".join(
+        lines
+    )
 
 
 def send_telegram(message):
@@ -107,14 +129,23 @@ def send_telegram(message):
 
         chunk = message[:max_length]
 
-        newline_position = chunk.rfind("\n")
+        newline_position = chunk.rfind(
+            "\n"
+        )
 
         if newline_position > 1000:
-            chunk = chunk[:newline_position]
 
-        chunks.append(chunk)
+            chunk = chunk[
+                :newline_position
+            ]
 
-        message = message[len(chunk):]
+        chunks.append(
+            chunk
+        )
+
+        message = message[
+            len(chunk):
+        ]
 
     for chunk in chunks:
 
@@ -178,9 +209,13 @@ def get_posts():
             default=""
         )
 
-        post_id = guid or link
+        post_id = (
+            guid
+            or link
+        )
 
         if not post_id:
+
             continue
 
         text = clean_html(
@@ -220,7 +255,9 @@ def load_state():
             encoding="utf-8"
         ) as file:
 
-            return json.load(file)
+            return json.load(
+                file
+            )
 
     except Exception:
 
@@ -270,7 +307,8 @@ def sort_posts(posts):
 def process_post(post):
 
     print(
-        f"Analyzing X post: {post['id']}"
+        f"Analyzing X post: "
+        f"{post['id']}"
     )
 
     text = post["text"]
@@ -279,25 +317,33 @@ def process_post(post):
 
         text = post["title"]
 
-    # ==============================
+    # =================================
     # V4 SECURITY
-    # ==============================
+    # =================================
 
     analysis = analyze_message(
         text,
         post["link"]
     )
 
-    security_message = format_alert(
-        analysis
+    security_message = (
+        format_alert(
+            analysis
+        )
     )
 
-    # ==============================
-    # V5 ACTION INTELLIGENCE
-    # ==============================
+    print(
+        "V4 Security: SUCCESS"
+    )
 
-    intelligence = build_action_intelligence(
-        analysis
+    # =================================
+    # V5 ACTION INTELLIGENCE
+    # =================================
+
+    intelligence = (
+        build_action_intelligence(
+            analysis
+        )
     )
 
     intelligence_message = (
@@ -306,9 +352,15 @@ def process_post(post):
         )
     )
 
-    # ==============================
-    # V6 AI ANALYSIS
-    # ==============================
+    print(
+        "V5 Action Intelligence: SUCCESS"
+    )
+
+    # =================================
+    # V6 AI
+    # =================================
+
+    ai_result = None
 
     try:
 
@@ -321,46 +373,115 @@ def process_post(post):
             post["link"]
         )
 
-        ai_message = format_ai_analysis(
-            ai_result
+        ai_message = (
+            format_ai_analysis(
+                ai_result
+            )
         )
 
         print(
-            "Gemini AI analysis completed."
+            "V6 AI: SUCCESS"
         )
 
     except Exception as error:
 
         print(
-            f"Gemini AI analysis failed: {error}"
+            "V6 AI failed:"
         )
+
+        print(error)
 
         ai_message = (
             "🤖 NABU AI INTELLIGENCE\n\n"
-            "⚠️ تحلیل هوش مصنوعی در این اجرا "
-            "در دسترس نبود.\n"
-            "لایه‌های امنیتی V4 و V5 همچنان "
-            "اجرا شده‌اند."
+            "⚠️ تحلیل هوش مصنوعی "
+            "در این اجرا در دسترس نبود.\n"
+            "لایه‌های V4 و V5 همچنان "
+            "فعال هستند."
         )
 
-    # ==============================
-    # COMBINED REPORT
-    # ==============================
+    # =================================
+    # V7 MEMORY
+    # =================================
+
+    if ai_result is not None:
+
+        try:
+
+            print(
+                "Updating Nabu memory..."
+            )
+
+            memory_result = (
+                process_ai_event(
+                    ai_result,
+                    post["link"]
+                )
+            )
+
+            memory_message = (
+                format_memory_update(
+                    memory_result
+                )
+            )
+
+            print(
+                "V7 Memory: SUCCESS"
+            )
+
+        except Exception as error:
+
+            print(
+                "V7 Memory failed:"
+            )
+
+            print(error)
+
+            memory_message = (
+                "🧠 NABU MEMORY\n\n"
+                "⚠️ بروزرسانی حافظه "
+                "در این اجرا ناموفق بود."
+            )
+
+    else:
+
+        memory_message = (
+            "🧠 NABU MEMORY\n\n"
+            "ℹ️ چون تحلیل AI انجام نشد، "
+            "حافظه بروزرسانی نشد."
+        )
+
+    # =================================
+    # FINAL REPORT
+    # =================================
 
     final_message = (
         "𝕏 NABU X / @nabulines\n\n"
+
         "━━━━━━━━━━━━━━━━━━━━\n"
         "🔐 V4 SECURITY ANALYSIS\n"
         "━━━━━━━━━━━━━━━━━━━━\n\n"
+
         + security_message
+
         + "\n\n"
+
         "━━━━━━━━━━━━━━━━━━━━\n"
         "🛡️ V5 ACTION INTELLIGENCE\n"
         "━━━━━━━━━━━━━━━━━━━━\n\n"
+
         + intelligence_message
+
         + "\n\n"
+
         "━━━━━━━━━━━━━━━━━━━━\n"
+
         + ai_message
+
+        + "\n\n"
+
+        "━━━━━━━━━━━━━━━━━━━━\n"
+
+        + memory_message
     )
 
     send_telegram(
@@ -368,8 +489,7 @@ def process_post(post):
     )
 
     print(
-        f"X post {post['id']} "
-        "analyzed and sent to Telegram."
+        "X report sent."
     )
 
 
@@ -394,7 +514,8 @@ def main():
         return
 
     print(
-        f"Posts received: {len(posts)}"
+        f"Posts received: "
+        f"{len(posts)}"
     )
 
     state = load_state()
@@ -405,14 +526,19 @@ def main():
     )
 
     print(
-        f"Previous post: {last_post_id}"
+        f"Previous post: "
+        f"{last_post_id}"
     )
 
     print(
-        f"Latest post: {posts[-1]['id']}"
+        f"Latest post: "
+        f"{posts[-1]['id']}"
     )
 
-    # First run
+    # =================================
+    # FIRST RUN
+    # =================================
+
     if not last_post_id:
 
         save_state(
@@ -424,6 +550,10 @@ def main():
         )
 
         return
+
+    # =================================
+    # FIND PREVIOUS POST
+    # =================================
 
     new_posts = []
 
@@ -443,18 +573,20 @@ def main():
                 post
             )
 
-    # If previous post disappeared from RSS,
-    # do NOT blindly process every RSS item.
+    # =================================
+    # PREVIOUS POST NOT FOUND
+    # =================================
+
     if not found_previous:
 
         print(
-            "Previous X post is not in the "
-            "current RSS window."
+            "Previous X post is not in "
+            "the current RSS window."
         )
 
         print(
-            "Updating state to latest post "
-            "without sending historical alerts."
+            "Updating state to latest "
+            "without historical alerts."
         )
 
         save_state(
@@ -462,6 +594,10 @@ def main():
         )
 
         return
+
+    # =================================
+    # NO NEW POST
+    # =================================
 
     if not new_posts:
 
@@ -472,7 +608,7 @@ def main():
         return
 
     print(
-        f"New X posts found: "
+        f"New X posts: "
         f"{len(new_posts)}"
     )
 
@@ -495,9 +631,11 @@ def main():
         except Exception as error:
 
             print(
-                f"X post {post['id']} "
-                f"failed: {error}"
+                f"X post "
+                f"{post['id']} failed:"
             )
+
+            print(error)
 
             raise
 
@@ -506,11 +644,10 @@ def main():
     )
 
     print(
-        "X monitor state updated."
+        "X state updated."
     )
 
 
 if __name__ == "__main__":
+
     main()
-
-
