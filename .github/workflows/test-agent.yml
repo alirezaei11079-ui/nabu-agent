@@ -23,18 +23,31 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          pip install -r requirements.txt
 
-      - name: Run Nabu Monitor
+      - name: Run Telegram Monitor
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python main.py
+        run: |
+          python main.py
 
-      - name: Save monitor state
+      - name: Run X Monitor
+        env:
+          X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python x_monitor.py
+
+      - name: Save monitor states
         run: |
           git config user.name "nabu-agent"
           git config user.email "nabu-agent@users.noreply.github.com"
-          git add telegram_state.json
-          git diff --cached --quiet || git commit -m "Update Telegram monitor state"
+
+          git add telegram_state.json x_state.json
+
+          git diff --cached --quiet || git commit -m "Update monitor states"
+
           git push
