@@ -1,9 +1,13 @@
 import os
 import json
 import requests
+
 from bs4 import BeautifulSoup
 
-from analyzer import analyze_message, format_alert
+from analyzer import (
+    analyze_message,
+    format_alert,
+)
 
 from action_intelligence import (
     build_action_intelligence,
@@ -15,24 +19,38 @@ from ai_analyzer import (
     format_ai_analysis,
 )
 
+from memory_engine import (
+    process_ai_event,
+    format_memory_update,
+)
+
 
 CHANNEL = "web3nabu"
+
 STATE_FILE = "telegram_state.json"
 
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+BOT_TOKEN = os.getenv(
+    "TELEGRAM_BOT_TOKEN"
+)
+
+CHAT_ID = os.getenv(
+    "TELEGRAM_CHAT_ID"
+)
 
 
 def send_telegram(message):
 
     if not BOT_TOKEN or not CHAT_ID:
+
         raise RuntimeError(
             "Telegram credentials are missing."
         )
 
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    url = (
+        f"https://api.telegram.org/"
+        f"bot{BOT_TOKEN}/sendMessage"
+    )
 
-    # Telegram message limit protection
     max_length = 3900
 
     if len(message) <= max_length:
@@ -51,22 +69,25 @@ def send_telegram(message):
 
         return
 
-    # Split long messages safely
     chunks = []
 
     while message:
 
         chunk = message[:max_length]
 
-        # Try to split at a newline
         newline_position = chunk.rfind("\n")
 
         if newline_position > 1000:
-            chunk = chunk[:newline_position]
+
+            chunk = chunk[
+                :newline_position
+            ]
 
         chunks.append(chunk)
 
-        message = message[len(chunk):]
+        message = message[
+            len(chunk):
+        ]
 
     for chunk in chunks:
 
@@ -85,7 +106,9 @@ def send_telegram(message):
 
 def get_posts():
 
-    url = f"https://t.me/s/{CHANNEL}"
+    url = (
+        f"https://t.me/s/{CHANNEL}"
+    )
 
     response = requests.get(
         url,
@@ -141,7 +164,9 @@ def get_posts():
         )
 
         link = (
-            f"https://t.me/{CHANNEL}/{post_id}"
+            f"https://t.me/"
+            f"{CHANNEL}/"
+            f"{post_id}"
         )
 
         results.append(
@@ -207,12 +232,13 @@ def save_state(post_id):
 def process_post(post):
 
     print(
-        f"Analyzing Telegram post: {post['id']}"
+        f"Analyzing Telegram post: "
+        f"{post['id']}"
     )
 
-    # ==============================
-    # V4 SECURITY ANALYSIS
-    # ==============================
+    # =================================
+    # V4 SECURITY
+    # =================================
 
     analysis = analyze_message(
         post["text"],
@@ -223,12 +249,18 @@ def process_post(post):
         analysis
     )
 
-    # ==============================
-    # V5 ACTION INTELLIGENCE
-    # ==============================
+    print(
+        "V4 Security: SUCCESS"
+    )
 
-    intelligence = build_action_intelligence(
-        analysis
+    # =================================
+    # V5 ACTION INTELLIGENCE
+    # =================================
+
+    intelligence = (
+        build_action_intelligence(
+            analysis
+        )
     )
 
     intelligence_message = (
@@ -237,11 +269,15 @@ def process_post(post):
         )
     )
 
-    # ==============================
-    # V6 AI ANALYSIS
-    # ==============================
+    print(
+        "V5 Action Intelligence: SUCCESS"
+    )
 
-    ai_message = None
+    # =================================
+    # V6 AI ANALYSIS
+    # =================================
+
+    ai_result = None
 
     try:
 
@@ -254,46 +290,118 @@ def process_post(post):
             post["link"]
         )
 
-        ai_message = format_ai_analysis(
-            ai_result
+        ai_message = (
+            format_ai_analysis(
+                ai_result
+            )
         )
 
         print(
-            "Gemini AI analysis completed."
+            "V6 AI: SUCCESS"
         )
 
     except Exception as error:
 
         print(
-            f"Gemini AI analysis failed: {error}"
+            "V6 AI failed:"
         )
+
+        print(error)
 
         ai_message = (
             "🤖 NABU AI INTELLIGENCE\n\n"
-            "⚠️ تحلیل هوش مصنوعی در این اجرا "
-            "در دسترس نبود.\n"
-            "لایه‌های امنیتی V4 و V5 همچنان "
-            "اجرا شده‌اند."
+            "⚠️ تحلیل هوش مصنوعی "
+            "در این اجرا در دسترس نبود.\n"
+            "لایه‌های V4 و V5 همچنان "
+            "فعال هستند."
         )
 
-    # ==============================
-    # COMBINED REPORT
-    # ==============================
+    # =================================
+    # V7 MEMORY
+    # =================================
+
+    memory_message = None
+
+    if ai_result is not None:
+
+        try:
+
+            print(
+                "Updating Nabu memory..."
+            )
+
+            memory_result = (
+                process_ai_event(
+                    ai_result,
+                    post["link"]
+                )
+            )
+
+            memory_message = (
+                format_memory_update(
+                    memory_result
+                )
+            )
+
+            print(
+                "V7 Memory: SUCCESS"
+            )
+
+        except Exception as error:
+
+            print(
+                "V7 Memory failed:"
+            )
+
+            print(error)
+
+            memory_message = (
+                "🧠 NABU MEMORY\n\n"
+                "⚠️ بروزرسانی حافظه "
+                "در این اجرا ناموفق بود.\n"
+                "V4 / V5 / V6 همچنان فعال هستند."
+            )
+
+    else:
+
+        memory_message = (
+            "🧠 NABU MEMORY\n\n"
+            "ℹ️ چون تحلیل AI انجام نشد، "
+            "حافظه بروزرسانی نشد."
+        )
+
+    # =================================
+    # FINAL REPORT
+    # =================================
 
     final_message = (
         "📡 NABU TELEGRAM\n\n"
+
         "━━━━━━━━━━━━━━━━━━━━\n"
         "🔐 V4 SECURITY ANALYSIS\n"
         "━━━━━━━━━━━━━━━━━━━━\n\n"
+
         + security_message
+
         + "\n\n"
+
         "━━━━━━━━━━━━━━━━━━━━\n"
         "🛡️ V5 ACTION INTELLIGENCE\n"
         "━━━━━━━━━━━━━━━━━━━━\n\n"
+
         + intelligence_message
+
         + "\n\n"
+
         "━━━━━━━━━━━━━━━━━━━━\n"
+
         + ai_message
+
+        + "\n\n"
+
+        "━━━━━━━━━━━━━━━━━━━━\n"
+
+        + memory_message
     )
 
     send_telegram(
@@ -301,8 +409,7 @@ def process_post(post):
     )
 
     print(
-        f"Telegram post {post['id']} "
-        "analyzed and sent."
+        "Telegram report sent."
     )
 
 
@@ -337,7 +444,10 @@ def main():
         f"Latest post: {posts[-1]['id']}"
     )
 
-    # First run
+    # =================================
+    # FIRST RUN
+    # =================================
+
     if last_post_id == 0:
 
         save_state(
@@ -349,6 +459,10 @@ def main():
         )
 
         return
+
+    # =================================
+    # FIND NEW POSTS
+    # =================================
 
     new_posts = [
         post
@@ -365,10 +479,13 @@ def main():
         return
 
     print(
-        f"New posts found: {len(new_posts)}"
+        f"New Telegram posts: "
+        f"{len(new_posts)}"
     )
 
-    latest_processed_id = last_post_id
+    latest_processed_id = (
+        last_post_id
+    )
 
     for post in new_posts:
 
@@ -378,15 +495,18 @@ def main():
                 post
             )
 
-            latest_processed_id = post[
-                "id"
-            ]
+            latest_processed_id = (
+                post["id"]
+            )
 
         except Exception as error:
 
             print(
-                f"Post {post['id']} failed: {error}"
+                f"Telegram post "
+                f"{post['id']} failed:"
             )
+
+            print(error)
 
             raise
 
@@ -395,10 +515,13 @@ def main():
     )
 
     print(
-        f"Monitor state updated to: "
+        f"Telegram state updated: "
         f"{latest_processed_id}"
     )
 
 
 if __name__ == "__main__":
+
     main()
+
+
