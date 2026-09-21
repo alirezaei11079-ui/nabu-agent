@@ -64,6 +64,43 @@
           "changed_fields": []
         }
       ]
+    },
+    {
+      "event_id": "event-1790008215",
+      "project": "Grok",
+      "category": "UPDATE",
+      "event": "ارائه مدل جدید هوش مصنوعی",
+      "status": "ACTIVE",
+      "first_seen": "2026-09-21T16:30:15.379459+00:00",
+      "last_updated": "2026-09-21T16:30:15.379459+00:00",
+      "deadline": "unknown",
+      "cost": "unknown",
+      "network": "unknown",
+      "contract_address": "unknown",
+      "wallet_required": "unknown",
+      "financial_action": false,
+      "eligibility": "unknown",
+      "reward": "unknown",
+      "requirements": [],
+      "unknowns": [
+        "جزئیات فنی مدل جدید",
+        "معیارهای مقایسه سرعت و هزینه",
+        "نحوه دسترسی به مدل جدید"
+      ],
+      "risk_notes": [
+        "ادعاهای مطرح شده درباره عملکرد مدل نیاز به راستی‌آزمایی و تست مستقل دارند."
+      ],
+      "source_links": [
+        "https://t.me/web3nabu/2078"
+      ],
+      "timeline": [
+        {
+          "timestamp": "2026-09-21T16:30:15.379459+00:00",
+          "type": "FIRST_SEEN",
+          "summary": "گراک مدل جدیدی ارائه داده است که ادعا می‌شود سریع‌تر و ارزان‌تر است.",
+          "source": "https://t.me/web3nabu/2078"
+        }
+      ]
     }
   ]
 }
