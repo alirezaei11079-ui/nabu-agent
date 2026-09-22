@@ -101,6 +101,45 @@
           "source": "https://t.me/web3nabu/2078"
         }
       ]
+    },
+    {
+      "event_id": "event-1790048174",
+      "project": "X",
+      "category": "UPDATE",
+      "event": "معرفی قابلیت ترید روی تایملاین",
+      "status": "ACTIVE",
+      "first_seen": "2026-09-22T03:36:14.122308+00:00",
+      "last_updated": "2026-09-22T03:36:14.122308+00:00",
+      "deadline": "unknown",
+      "cost": "unknown",
+      "network": "unknown",
+      "contract_address": "unknown",
+      "wallet_required": "UNKNOWN",
+      "financial_action": false,
+      "eligibility": "unknown",
+      "reward": "unknown",
+      "requirements": [],
+      "unknowns": [
+        "جزئیات فنی نحوه کارکرد ترید",
+        "کارمزدها",
+        "شبکه‌های بلاک‌چین پشتیبانی شده",
+        "دسترس‌پذیری جغرافیایی قابلیت"
+      ],
+      "risk_notes": [
+        "نیاز به بررسی رسمی از سوی منابع معتبر برای اطمینان از عملکرد و امنیت قابلیت جدید",
+        "ریسک‌های ذاتی پلتفرم‌های معاملاتی جدید و موضوعات مربوط به حریم خصوصی یا امنیت دارایی‌ها"
+      ],
+      "source_links": [
+        "https://t.me/web3nabu/2080"
+      ],
+      "timeline": [
+        {
+          "timestamp": "2026-09-22T03:36:14.122308+00:00",
+          "type": "FIRST_SEEN",
+          "summary": "قابلیت جدید X (توییتر) امکان ترید مستقیم روی تایملاین را فراهم کرده است و پارتنرهای لانچ آن شامل بروکرهای معتبری مانند Interactive Brokers، Moomoo، Gemini، Kraken و Coinbase هستند.",
+          "source": "https://t.me/web3nabu/2080"
+        }
+      ]
     }
   ]
 }
