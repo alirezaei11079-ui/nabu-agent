@@ -154,6 +154,49 @@
           "source": "https://t.me/web3nabu/2080"
         }
       ]
+    },
+    {
+      "event_id": "event-1790085451",
+      "project": "LangChain",
+      "category": "ANNOUNCEMENT",
+      "event": "کوییز آموزشی",
+      "status": "ACTIVE",
+      "first_seen": "2026-09-22T13:57:31.443150+00:00",
+      "last_updated": "2026-09-22T13:57:31.443150+00:00",
+      "deadline": "امروز ساعت ۷",
+      "cost": "unknown",
+      "network": "unknown",
+      "contract_address": "unknown",
+      "wallet_required": "UNKNOWN",
+      "financial_action": false,
+      "eligibility": "unknown",
+      "reward": "unknown",
+      "requirements": [
+        "مطالعه جزوه موجود در بخش Learn",
+        "داشتن کد ورود 8798",
+        "حضور راس ساعت ۷"
+      ],
+      "unknowns": [
+        "جزئیات پاداش",
+        "شرایط دقیق واجد شرایط بودن",
+        "شبکه بلاکچینی مرتبط",
+        "ماهیت دقیق کوئیز و جوایز آن"
+      ],
+      "risk_notes": [
+        "بررسی اعتبار ربات تلگرامی قبل از تعامل با آن",
+        "اطمینان از رسمی بودن منبع اطلاع‌رسانی"
+      ],
+      "source_links": [
+        "https://t.me/web3nabu/2083"
+      ],
+      "timeline": [
+        {
+          "timestamp": "2026-09-22T13:57:31.443150+00:00",
+          "type": "FIRST_SEEN",
+          "summary": "برگزاری یک کوئیز آموزشی در ساعت ۷ همراه با کد ورود مشخص و لزوم مطالعه جزوه از بخش Learn پروژه LangChain.",
+          "source": "https://t.me/web3nabu/2083"
+        }
+      ]
     }
   ]
 }
