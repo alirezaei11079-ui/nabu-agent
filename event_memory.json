@@ -480,6 +480,43 @@
           "source": "https://x.com/nabulines/status/2106098700795658750"
         }
       ]
+    },
+    {
+      "event_id": "event-1791122003",
+      "project": "Cloud Code / GitHub",
+      "category": "OTHER",
+      "event": "معرفی یا پرسش درباره ابزار/روش استفاده رایگان",
+      "status": "ACTIVE",
+      "first_seen": "2026-10-04T13:53:23.357057+00:00",
+      "last_updated": "2026-10-04T13:53:23.357057+00:00",
+      "deadline": "unknown",
+      "cost": "unknown",
+      "network": "unknown",
+      "contract_address": "unknown",
+      "wallet_required": "UNKNOWN",
+      "financial_action": false,
+      "eligibility": "unknown",
+      "reward": "unknown",
+      "requirements": [],
+      "unknowns": [
+        "نام دقیق ابزار یا روش",
+        "لینک ریپازیتوری مورد نظر",
+        "شرایط دقیق استفاده"
+      ],
+      "risk_notes": [
+        "پیش از استفاده از ابزارها یا ریپازیتوری‌های ناشناخته، از امنیت و عدم وجود کدهای مخرب اطمینان حاصل کنید."
+      ],
+      "source_links": [
+        "https://t.me/web3nabu/2128"
+      ],
+      "timeline": [
+        {
+          "timestamp": "2026-10-04T13:53:23.357057+00:00",
+          "type": "FIRST_SEEN",
+          "summary": "پرسش درباره استفاده رایگان و بدون نیاز به اکانت از ریپازیتوری‌های گیت‌هاب که Cloud Code ارائه می‌دهند.",
+          "source": "https://t.me/web3nabu/2128"
+        }
+      ]
     }
   ]
 }
