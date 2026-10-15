@@ -601,6 +601,43 @@
           "source": "https://t.me/web3nabu/2128"
         }
       ]
+    },
+    {
+      "event_id": "event-1792100563",
+      "project": "نبولاینز (Nabulines)",
+      "category": "UPDATE",
+      "event": "برگزاری یک ایونت وب‌تری",
+      "status": "ACTIVE",
+      "first_seen": "2026-10-15T21:42:43.559335+00:00",
+      "last_updated": "2026-10-15T21:42:43.559335+00:00",
+      "deadline": "unknown",
+      "cost": "unknown",
+      "network": "unknown",
+      "contract_address": "unknown",
+      "wallet_required": "UNKNOWN",
+      "financial_action": false,
+      "eligibility": "unknown",
+      "reward": "unknown",
+      "requirements": [],
+      "unknowns": [
+        "جزئیات دقیق حمله",
+        "نتایج کار کارآگاهی و پیگیری‌ها",
+        "ماهیت دقیق ایونت و جزئیات آن"
+      ],
+      "risk_notes": [
+        "اطلاعات امنیتی و فنی خاصی در پست وجود ندارد که نیاز به بررسی ریسک مالی داشته باشد."
+      ],
+      "source_links": [
+        "https://t.me/web3nabu/2140"
+      ],
+      "timeline": [
+        {
+          "timestamp": "2026-10-15T21:42:43.559335+00:00",
+          "type": "FIRST_SEEN",
+          "summary": "گزارش پایان یک ایونت توسط نبولاینز به عنوان سرویس‌پروایدر، اشاره به چالش‌های ویزا، تجربیات کاری خاص، و اشاره به یک حمله و واکنش رقبا به عنوان مطالعه موردی مدیریت بحران.",
+          "source": "https://t.me/web3nabu/2140"
+        }
+      ]
     }
   ]
 }
