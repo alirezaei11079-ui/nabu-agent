@@ -7,7 +7,7 @@
       "event": "رمزگشایی پیام نظامی تاریخی با هوش مصنوعی",
       "status": "ACTIVE",
       "first_seen": "2026-09-20T16:37:17.536858+00:00",
-      "last_updated": "2026-10-15T14:21:41.073941+00:00",
+      "last_updated": "2026-10-16T17:56:40.787059+00:00",
       "deadline": "unknown",
       "cost": "unknown",
       "network": "Zcash",
@@ -126,7 +126,8 @@
         "اطلاعات امنیتی و هویت برگزارکننده در متن وجود ندارد و باید پیش از اعتماد بررسی شود.",
         "هیچ دستورالعمل یا لینک مالی خاصی در این پست وجود ندارد، اما همیشه باید از صحت منابع مطمئن شد.",
         "اطلاعات کافی درباره پروژه و جزئیات قرعه‌کشی در متن وجود ندارد و باید بررسی شود.",
-        "اعتبار لینک‌های خارجی باید قبل از تعامل بررسی شود."
+        "اعتبار لینک‌های خارجی باید قبل از تعامل بررسی شود.",
+        "اطلاعات امنیتی کافی در متن وجود ندارد و لینک‌ها قبل از تعامل باید بررسی شوند."
       ],
       "source_links": [
         "https://t.me/web3nabu/2071",
@@ -152,7 +153,8 @@
         "https://t.me/web3nabu/2130",
         "https://t.me/web3nabu/2134",
         "https://t.me/web3nabu/2138",
-        "https://t.me/web3nabu/2139"
+        "https://t.me/web3nabu/2139",
+        "https://t.me/web3nabu/2142"
       ],
       "timeline": [
         {
@@ -333,6 +335,13 @@
           "type": "UPDATE",
           "summary": "برگزاری سومین قرعه‌کشی لینکدین در کانال Web3 Nabu.",
           "source": "https://t.me/web3nabu/2139",
+          "changed_fields": []
+        },
+        {
+          "timestamp": "2026-10-16T17:56:40.787059+00:00",
+          "type": "UPDATE",
+          "summary": "سومین قرعه‌کشی لینکدین در لینک ارائه شده برگزار می‌شود.",
+          "source": "https://t.me/web3nabu/2142",
           "changed_fields": []
         }
       ]
@@ -636,6 +645,43 @@
           "type": "FIRST_SEEN",
           "summary": "گزارش پایان یک ایونت توسط نبولاینز به عنوان سرویس‌پروایدر، اشاره به چالش‌های ویزا، تجربیات کاری خاص، و اشاره به یک حمله و واکنش رقبا به عنوان مطالعه موردی مدیریت بحران.",
           "source": "https://t.me/web3nabu/2140"
+        }
+      ]
+    },
+    {
+      "event_id": "event-1792173415",
+      "project": "oleem",
+      "category": "COMPETITION",
+      "event": "رای‌گیری مسابقه",
+      "status": "ACTIVE",
+      "first_seen": "2026-10-16T17:56:55.118288+00:00",
+      "last_updated": "2026-10-16T17:56:55.118288+00:00",
+      "deadline": "unknown",
+      "cost": "unknown",
+      "network": "unknown",
+      "contract_address": "unknown",
+      "wallet_required": "UNKNOWN",
+      "financial_action": false,
+      "eligibility": "unknown",
+      "reward": "unknown",
+      "requirements": [],
+      "unknowns": [
+        "جزئیات و جوایز مسابقه",
+        "شرایط دقیق شرکت‌کنندگان",
+        "مهلت زمانی رای‌گیری"
+      ],
+      "risk_notes": [
+        "اعتبار لینک‌های خارجی و فرم گوگل باید قبل از تعامل بررسی شود."
+      ],
+      "source_links": [
+        "https://t.me/web3nabu/2143"
+      ],
+      "timeline": [
+        {
+          "timestamp": "2026-10-16T17:56:55.118288+00:00",
+          "type": "FIRST_SEEN",
+          "summary": "دعوت از اعضا برای رای دادن به oleem در یک مسابقه.",
+          "source": "https://t.me/web3nabu/2143"
         }
       ]
     }
