@@ -879,6 +879,45 @@
           "source": "https://t.me/web3nabu/2152"
         }
       ]
+    },
+    {
+      "event_id": "event-1794505882",
+      "project": "pump.fun",
+      "category": "OTHER",
+      "event": "unknown",
+      "status": "ACTIVE",
+      "first_seen": "2026-11-12T17:51:22.796953+00:00",
+      "last_updated": "2026-11-12T17:51:22.796953+00:00",
+      "deadline": "unknown",
+      "cost": "unknown",
+      "network": "unknown",
+      "contract_address": "unknown",
+      "wallet_required": "UNKNOWN",
+      "financial_action": false,
+      "eligibility": "unknown",
+      "reward": "unknown",
+      "requirements": [],
+      "unknowns": [
+        "هدف دقیق پروژه",
+        "شبکه بلاکچین",
+        "هزینه احتمالی",
+        "شرایط شرکت یا تعامل"
+      ],
+      "risk_notes": [
+        "بررسی اعتبار لینک و پروژه در پامپ‌فان قبل از هرگونه تعامل مالی یا اتصال کیف پول",
+        "اطلاعات امنیتی کافی در متن وجود ندارد و نیازمند بررسی است"
+      ],
+      "source_links": [
+        "https://t.me/web3nabu/2158"
+      ],
+      "timeline": [
+        {
+          "timestamp": "2026-11-12T17:51:22.796953+00:00",
+          "type": "FIRST_SEEN",
+          "summary": "دعوت کاربران به بررسی یک لینک در پامپ‌فان (pump.fun) بدون تمرکز بر ترید، همراه با ذکر این نکته که استفاده از لینک رفرال چیزی از کاربر کم نمی‌کند.",
+          "source": "https://t.me/web3nabu/2158"
+        }
+      ]
     }
   ]
 }
