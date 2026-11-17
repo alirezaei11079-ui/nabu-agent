@@ -1029,6 +1029,42 @@
           "source": "https://t.me/web3nabu/2158"
         }
       ]
+    },
+    {
+      "event_id": "event-1794911698",
+      "project": "گوگل",
+      "category": "ANNOUNCEMENT",
+      "event": "گزارش تهدیدات سایبری هوش مصنوعی",
+      "status": "ACTIVE",
+      "first_seen": "2026-11-17T10:34:58.612777+00:00",
+      "last_updated": "2026-11-17T10:34:58.612777+00:00",
+      "deadline": "unknown",
+      "cost": "unknown",
+      "network": "unknown",
+      "contract_address": "unknown",
+      "wallet_required": "UNKNOWN",
+      "financial_action": false,
+      "eligibility": "unknown",
+      "reward": "unknown",
+      "requirements": [],
+      "unknowns": [
+        "جزئیات فنی روش‌های مقابله",
+        "آمار دقیق حملات انجام شده"
+      ],
+      "risk_notes": [
+        "نیاز به بررسی گزارش اصلی گوگل برای جزئیات بیشتر امنیتی"
+      ],
+      "source_links": [
+        "https://t.me/web3nabu/2175"
+      ],
+      "timeline": [
+        {
+          "timestamp": "2026-11-17T10:34:58.612777+00:00",
+          "type": "FIRST_SEEN",
+          "summary": "گزارش گروه اطلاعات تهدیدات گوگل نشان می‌دهد که هکرها از هوش مصنوعی برای حملات سایبری خودمختار و سوءاستفاده سریع از آسیب‌پذیری‌های نرم‌افزاری پیش از نصب آپدیت‌ها استفاده می‌کنند.",
+          "source": "https://t.me/web3nabu/2175"
+        }
+      ]
     }
   ]
 }
