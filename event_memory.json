@@ -1155,6 +1155,43 @@
           "source": "https://t.me/web3nabu/2177"
         }
       ]
+    },
+    {
+      "event_id": "event-1795314924",
+      "project": "Paybox",
+      "category": "ANNOUNCEMENT",
+      "event": "لایو توییتر",
+      "status": "ACTIVE",
+      "first_seen": "2026-11-22T02:35:24.761272+00:00",
+      "last_updated": "2026-11-22T02:35:24.761272+00:00",
+      "deadline": "unknown",
+      "cost": "unknown",
+      "network": "unknown",
+      "contract_address": "unknown",
+      "wallet_required": "unknown",
+      "financial_action": false,
+      "eligibility": "unknown",
+      "reward": "unknown",
+      "requirements": [],
+      "unknowns": [
+        "زمان دقیق برگزاری لایو",
+        "موضوع لایو",
+        "شرایط شرکت در لایو"
+      ],
+      "risk_notes": [
+        "اعتبار لینک توییتر قبل از کلیک بررسی شود"
+      ],
+      "source_links": [
+        "https://t.me/web3nabu/2183"
+      ],
+      "timeline": [
+        {
+          "timestamp": "2026-11-22T02:35:24.761272+00:00",
+          "type": "FIRST_SEEN",
+          "summary": "اعلام برگزاری یک لایو توییتر جذاب و سرگرم‌کننده توسط پروژه Paybox.",
+          "source": "https://t.me/web3nabu/2183"
+        }
+      ]
     }
   ]
 }
